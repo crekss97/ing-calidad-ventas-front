@@ -1,7 +1,6 @@
 // src/app/features/dashboard/dashboard.component.ts
 
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/services/auth.service';
 import { User } from '../auth/models/user.model';
@@ -32,15 +31,15 @@ interface QuickAction {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
 export class DashboardComponent implements OnInit {
-  currentUser: User | null = null;
+  currentUser =signal<User | null>(null);
   
   // Datos de métricas (simulados)
-  metrics: MetricCard[] = [
+  metrics = signal<MetricCard[]>([
     {
       title: 'Ventas Totales',
       value: '$45,231.89',
@@ -69,10 +68,10 @@ export class DashboardComponent implements OnInit {
       changeType: 'negative',
       icon: 'bi-cart'
     }
-  ];
+  ]);
 
   // Ventas recientes (simuladas)
-  recentSales: RecentSale[] = [
+  recentSales= signal<RecentSale[]>([
     {
       id: '1',
       customerName: 'Olivia Martin',
@@ -113,15 +112,15 @@ export class DashboardComponent implements OnInit {
       initials: 'SD',
       avatarColor: '#ec4899'
     }
-  ];
+  ]);
 
   // Acciones rápidas
-  quickActions: QuickAction[] = [
+  quickActions = signal<QuickAction[]>([
     { icon: 'bi-cart-plus', label: 'Nueva Venta', route: '/sales/new' },
     { icon: 'bi-person-plus', label: 'Agregar Cliente', route: '/clients/new' },
     { icon: 'bi-box-seam', label: 'Nuevo Producto', route: '/products/new' },
     { icon: 'bi-graph-up', label: 'Ver Reportes', route: '/reports' }
-  ];
+  ]);
 
   constructor(
     private authService: AuthService,
@@ -133,10 +132,10 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadCurrentUser(): void {
-    this.currentUser = this.authService.currentUserValue;
+    this.currentUser.set(this.authService.currentUserValue);
     
     // Si no hay usuario autenticado, redirigir a login
-    if (!this.currentUser) {
+    if (!this.currentUser()) {
       this.router.navigate(['/auth/login']);
     }
   }
@@ -176,6 +175,6 @@ export class DashboardComponent implements OnInit {
   }
 
   get userName(): string {
-    return this.currentUser?.fullName || 'Usuario';
+    return this.currentUser()?.fullName || 'Usuario';
   }
 }

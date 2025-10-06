@@ -47,17 +47,19 @@
 
       <!-- Metrics Cards -->
       <div class="metrics-grid">
-        <div class="metric-card" *ngFor="let metric of metrics">
-          <div class="metric-header">
-            <span class="metric-title">{{ metric.title }}</span>
-            <i [class]="'metric-icon bi ' + metric.icon"></i>
+        @for (metric of metrics(); track $index) {
+        <div class="metric-card">
+            <div class="metric-header">
+              <span class="metric-title">{{ metric.title }}</span>
+              <i [class]="'metric-icon bi ' + metric.icon"></i>
+            </div>
+            <div class="metric-value">{{ metric.value }}</div>
+            <div class="metric-change" [class.positive]="metric.changeType === 'positive'" [class.negative]="metric.changeType === 'negative'">
+              <i [class]="metric.changeType === 'positive' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+              {{ metric.change }}
+            </div>
           </div>
-          <div class="metric-value">{{ metric.value }}</div>
-          <div class="metric-change" [class.positive]="metric.changeType === 'positive'" [class.negative]="metric.changeType === 'negative'">
-            <i [class]="metric.changeType === 'positive' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
-            {{ metric.change }}
-          </div>
-        </div>
+        }
       </div>
 
       <!-- Content Grid -->
@@ -81,22 +83,24 @@
         <div class="content-card recent-sales">
           <div class="card-header">
             <h2 class="card-title">Ventas Recientes</h2>
-            <p class="card-subtitle">Has realizado {{ recentSales.length }} ventas este mes</p>
+            <p class="card-subtitle">Has realizado {{ recentSales().length }} ventas este mes</p>
           </div>
           <div class="card-body">
             <div class="sales-list">
-              <div class="sale-item" *ngFor="let sale of recentSales">
-                <div class="sale-avatar" [style.background-color]="sale.avatarColor">
-                  {{ sale.initials }}
+              @for (sale of recentSales(); track $index) {
+              <div class="sale-item" let sale of recentSales>
+                  <div class="sale-avatar" [style.background-color]="sale.avatarColor">
+                    {{ sale.initials }}
+                  </div>
+                  <div class="sale-info">
+                    <div class="sale-customer-name">{{ sale.customerName }}</div>
+                    <div class="sale-customer-email">{{ sale.customerEmail }}</div>
+                  </div>
+                  <div class="sale-amount">
+                    +{{ formatCurrency(sale.amount) }}
+                  </div>
                 </div>
-                <div class="sale-info">
-                  <div class="sale-customer-name">{{ sale.customerName }}</div>
-                  <div class="sale-customer-email">{{ sale.customerEmail }}</div>
-                </div>
-                <div class="sale-amount">
-                  +{{ formatCurrency(sale.amount) }}
-                </div>
-              </div>
+              }
             </div>
           </div>
         </div>
@@ -110,14 +114,15 @@
           <p class="section-subtitle">Accede rápidamente a las funciones más utilizadas</p>
         </div>
         <div class="quick-actions-grid">
-          <button 
+          @for (action of quickActions(); track $index) {
+            <button 
             class="quick-action-btn" 
-            *ngFor="let action of quickActions"
             (click)="onQuickAction(action)"
-          >
+            >
             <i [class]="'action-icon bi ' + action.icon"></i>
             <span class="action-label">{{ action.label }}</span>
           </button>
+        }
         </div>
       </div>
 
