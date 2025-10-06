@@ -1,13 +1,13 @@
 // src/app/features/auth/components/login/login.component.ts
 
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnInit, signal } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { CustomValidators } from '../../../../shared/validators/custom-validators';
-import { LoginRequest, ApiError } from '../../models/user.model';
 import { AuthLayout } from '../../../../shared/layouts/auth-layout/auth-layout';
+import { CustomValidators } from '../../../../shared/validators/custom-validators';
+import { ApiError, LoginRequest } from '../../models/user.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -23,9 +23,9 @@ import { AuthLayout } from '../../../../shared/layouts/auth-layout/auth-layout';
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
-  isLoading = false;
-  errorMessage = '';
-  showPassword = false;
+  isLoading = signal<boolean>(false);
+  errorMessage = signal<string>('');
+  showPassword = signal<boolean>(false);
 
   constructor(
     private fb: FormBuilder,
@@ -60,7 +60,7 @@ export class LoginComponent implements OnInit {
   }
 
   togglePasswordVisibility(): void {
-    this.showPassword = !this.showPassword;
+    this.showPassword.update(val => !val);
   }
 
   isFieldInvalid(fieldName: string): boolean {
@@ -94,8 +94,8 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.isLoading.set(true);
+    this.errorMessage.set('');
 
     const loginData: LoginRequest = {
       email: this.loginForm.value.email,
@@ -120,19 +120,19 @@ export class LoginComponent implements OnInit {
         
         // Mensajes de error personalizados según el código
         if (error.statusCode === 401) {
-          this.errorMessage = 'Email o contraseña incorrectos';
+          this.errorMessage.set('Email o contraseña incorrectos');
         } else if (error.statusCode === 403) {
-          this.errorMessage = 'Tu cuenta no está activada. Revisa tu email';
+          this.errorMessage.set('Tu cuenta no está activada. Revisa tu email');
         } else if (error.statusCode === 0) {
-          this.errorMessage = 'No se pudo conectar con el servidor';
+          this.errorMessage.set('No se pudo conectar con el servidor');
         } else {
-          this.errorMessage = error.message || 'Error al iniciar sesión';
+          this.errorMessage.set(error.message ?? 'Error al iniciar sesión');
         }
         
-        this.isLoading = false;
+        this.isLoading.set(false);
       },
       complete: () => {
-        this.isLoading = false;
+        this.isLoading.set(false);
       }
     });
   }
@@ -152,5 +152,9 @@ export class LoginComponent implements OnInit {
   onForgotPassword(): void {
     // Redirigir a la página de recuperación de contraseña
     this.router.navigate(['/auth/forgot-password']);
+  }
+
+  clearErrorMessage(){
+    this.errorMessage.set('');
   }
 }

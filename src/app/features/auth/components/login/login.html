@@ -15,11 +15,13 @@
     </div>
 
     <!-- Error Alert -->
-    <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
-      <i class="bi bi-exclamation-circle me-2"></i>
-      {{ errorMessage }}
-      <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
-    </div>
+     @if(errorMessage()){
+       <div class="alert alert-danger alert-dismissible fade show" role="alert">
+         <i class="bi bi-exclamation-circle me-2"></i>
+         {{ errorMessage() }}
+         <button type="button" class="btn-close" (click)="clearErrorMessage()" aria-label="Close"></button>
+       </div>
+     }
 
     <!-- Login Form -->
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
@@ -38,9 +40,11 @@
           [class.is-invalid]="isFieldInvalid('email')"
           autofocus
         >
-        <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
-          {{ getFieldError('email') }}
-        </div>
+        @if(isFieldInvalid('email')){
+          <div class="invalid-feedback">
+            {{ getFieldError('email') }}
+          </div>
+        }
       </div>
 
       <!-- Password -->
@@ -59,7 +63,7 @@
         </div>
         <div class="input-group">
           <input 
-            [type]="showPassword ? 'text' : 'password'" 
+            [type]="showPassword() ? 'text' : 'password'" 
             class="form-control" 
             id="password"
             formControlName="password"
@@ -70,13 +74,15 @@
             class="btn btn-outline-secondary" 
             type="button"
             (click)="togglePasswordVisibility()"
-            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
           >
-            <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+            <i [class]="showPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
           </button>
-          <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
-            {{ getFieldError('password') }}
-          </div>
+          @if(isFieldInvalid('password')){
+            <div class="invalid-feedback">
+              {{ getFieldError('password') }}
+            </div>
+          }
         </div>
       </div>
 
@@ -100,13 +106,16 @@
         <button 
           type="submit" 
           class="btn btn-primary btn-lg"
-          [disabled]="isLoading"
+          [disabled]="isLoading()"
         >
-          <span *ngIf="!isLoading">Iniciar sesión</span>
-          <span *ngIf="isLoading">
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            Iniciando sesión...
-          </span>
+        @if(!isLoading()){
+          <span>Iniciar sesión</span>
+        }@else {
+          <span>
+             <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+             Iniciando sesión...
+           </span>
+        }
         </button>
       </div>
 
@@ -122,7 +131,7 @@
             type="button" 
             class="btn btn-outline-secondary w-100"
             (click)="loginWithGoogle()"
-            [disabled]="isLoading"
+            [disabled]="isLoading()"
           >
             <i class="bi bi-google me-2"></i>
             Google
@@ -133,7 +142,7 @@
             type="button" 
             class="btn btn-outline-secondary w-100"
             (click)="loginWithGitHub()"
-            [disabled]="isLoading"
+            [disabled]="isLoading()"
           >
             <i class="bi bi-github me-2"></i>
             GitHub
