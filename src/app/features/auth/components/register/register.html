@@ -1,0 +1,236 @@
+<!-- src/app/features/auth/components/register/register.component.html -->
+
+<app-auth-layout>
+  <div class="register-form">
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <h1 class="h3 fw-bold mb-2">Crear cuenta</h1>
+      <p class="text-muted">Completa el formulario para comenzar</p>
+    </div>
+
+    <!-- Error Alert -->
+    <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-circle me-2"></i>
+      {{ errorMessage }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage = ''"
+        aria-label="Close"
+      ></button>
+    </div>
+
+    <!-- Registration Form -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <!-- Full Name -->
+      <div class="mb-3">
+        <label for="fullName" class="form-label">
+          Nombre completo <span class="text-danger">*</span>
+        </label>
+        <input
+          type="text"
+          class="form-control"
+          id="fullName"
+          formControlName="fullName"
+          placeholder="Juan Pérez"
+          [class.is-invalid]="isFieldInvalid('fullName')"
+        />
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('fullName')">
+          {{ getFieldError('fullName') }}
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-3">
+        <label for="email" class="form-label">
+          Correo electrónico <span class="text-danger">*</span>
+        </label>
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          formControlName="email"
+          placeholder="tu@empresa.com"
+          [class.is-invalid]="isFieldInvalid('email')"
+        />
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+          {{ getFieldError('email') }}
+        </div>
+      </div>
+
+      <!-- Company (Optional) -->
+      <div class="mb-3">
+        <label for="company" class="form-label">
+          Empresa <span class="text-muted">(opcional)</span>
+        </label>
+        <input
+          type="text"
+          class="form-control"
+          id="company"
+          formControlName="company"
+          placeholder="Tu Empresa S.A."
+          [class.is-invalid]="isFieldInvalid('company')"
+        />
+        <div class="invalid-feedback" *ngIf="isFieldInvalid('company')">
+          {{ getFieldError('company') }}
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="mb-3">
+        <label for="password" class="form-label">
+          Contraseña <span class="text-danger">*</span>
+        </label>
+        <div class="input-group">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            class="form-control"
+            id="password"
+            formControlName="password"
+            placeholder="••••••••"
+            [class.is-invalid]="isFieldInvalid('password')"
+          />
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="togglePasswordVisibility('password')"
+            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          >
+            <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+            {{ getFieldError('password') }}
+          </div>
+        </div>
+
+        <!-- Password Strength Indicator -->
+        <div class="mt-2" *ngIf="registerForm.get('password')?.value">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <small class="text-muted">Seguridad de la contraseña</small>
+            <small [class]="'badge ' + passwordStrengthClass">
+              {{ passwordStrengthText }}
+            </small>
+          </div>
+          <div class="progress" style="height: 4px">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              [style.width.%]="passwordStrength"
+              [class]="passwordStrengthClass"
+              [attr.aria-valuenow]="passwordStrength"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            ></div>
+          </div>
+          <small class="text-muted">
+            Usa al menos 8 caracteres con mayúsculas, minúsculas y números
+          </small>
+        </div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="mb-3">
+        <label for="confirmPassword" class="form-label">
+          Confirmar contraseña <span class="text-danger">*</span>
+        </label>
+        <div class="input-group">
+          <input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            class="form-control"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            placeholder="••••••••"
+            [class.is-invalid]="isFieldInvalid('confirmPassword')"
+          />
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="togglePasswordVisibility('confirmPassword')"
+            [attr.aria-label]="showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          >
+            <i [class]="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('confirmPassword')">
+            {{ getFieldError('confirmPassword') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Terms and Conditions -->
+      <div class="mb-4">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="acceptTerms"
+            formControlName="acceptTerms"
+            [class.is-invalid]="isFieldInvalid('acceptTerms')"
+          />
+          <label class="form-check-label" for="acceptTerms">
+            Acepto los
+            <a href="#" class="text-decoration-none">términos y condiciones</a>
+            y la
+            <a href="#" class="text-decoration-none">política de privacidad</a>
+          </label>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('acceptTerms')">
+            {{ getFieldError('acceptTerms') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="d-grid mb-4">
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Crear cuenta</span>
+          <span *ngIf="isLoading">
+            <span
+              class="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Creando cuenta...
+          </span>
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider mb-4">
+        <span class="divider-text">O REGÍSTRATE CON</span>
+      </div>
+
+      <!-- Social Login Buttons -->
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100"
+            (click)="loginWithGoogle()"
+            [disabled]="isLoading"
+          >
+            <i class="bi bi-google me-2"></i>
+            Google
+          </button>
+        </div>
+        <div class="col-6">
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100"
+            (click)="loginWithGitHub()"
+            [disabled]="isLoading"
+          >
+            <i class="bi bi-github me-2"></i>
+            GitHub
+          </button>
+        </div>
+      </div>
+
+      <!-- Login Link -->
+      <div class="text-center">
+        <p class="mb-0 text-muted">
+          ¿Ya tienes una cuenta?
+          <a routerLink="/auth/login" class="text-decoration-none fw-semibold"> Inicia sesión </a>
+        </p>
+      </div>
+    </form>
+  </div>
+</app-auth-layout>

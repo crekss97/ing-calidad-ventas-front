@@ -1,0 +1,119 @@
+:host {
+        display: block;
+        width: 100%;
+        min-height: 100vh;
+      }
+
+      .auth-layout {
+        min-height: 100vh;
+        width: 100%;
+        background: #f8f9fa;
+        margin: 0;
+        padding: 0;
+      }
+
+      .row {
+        margin: 0 !important;
+      }
+
+      .auth-left-panel {
+        background: linear-gradient(135deg, #0066cc 0%, #004c99 100%);
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .auth-layout {
+        min-height: 100vh;
+        background: #f8f9fa;
+      }
+
+      .auth-left-panel {
+        background: linear-gradient(135deg, #0066cc 0%, #004c99 100%);
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .auth-left-panel::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: pulse 15s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        50% {
+          transform: scale(1.1);
+          opacity: 0.3;
+        }
+      }
+
+      .auth-logo {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        position: relative;
+        z-index: 1;
+      }
+
+      .auth-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .auth-footer {
+        position: relative;
+        z-index: 1;
+      }
+
+      .features-list {
+        max-width: 500px;
+      }
+
+      .feature-item {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        backdrop-filter: blur(10px);
+      }
+
+      .feature-icon i {
+        font-size: 1.5rem;
+      }
+
+      .auth-right-panel {
+        padding: 2rem;
+        background: #ffffff;
+      }
+
+      .auth-form-container {
+        width: 100%;
+        max-width: 480px;
+      }
+
+      @media (max-width: 991.98px) {
+        .auth-right-panel {
+          min-height: 100vh;
+        }
+      }

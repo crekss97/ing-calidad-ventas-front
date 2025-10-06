@@ -1,0 +1,126 @@
+<!-- src/app/features/dashboard/dashboard.component.html -->
+
+<div class="dashboard-container">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <!-- Logo -->
+      <div class="navbar-brand">
+        <div class="logo-icon">
+          <i class="bi bi-graph-up-arrow"></i>
+        </div>
+        <span class="logo-text">VentasPro</span>
+      </div>
+
+      <!-- Navigation Menu -->
+      <div class="navbar-menu">
+        <a href="javascript:void(0)" class="nav-link active" (click)="navigateTo('/dashboard')">
+          Dashboard
+        </a>
+        <a href="javascript:void(0)" class="nav-link" (click)="navigateTo('/sales')">
+          Ventas
+        </a>
+        <a href="javascript:void(0)" class="nav-link" (click)="navigateTo('/clients')">
+          Clientes
+        </a>
+        <a href="javascript:void(0)" class="nav-link" (click)="navigateTo('/products')">
+          Productos
+        </a>
+      </div>
+
+      <!-- Logout Button -->
+      <button class="btn-logout" (click)="onLogout()">
+        Cerrar sesión
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <h1 class="hero-title">Bienvenido de nuevo</h1>
+        <p class="hero-subtitle">Aquí está un resumen de tu actividad de ventas</p>
+      </div>
+
+      <!-- Metrics Cards -->
+      <div class="metrics-grid">
+        <div class="metric-card" *ngFor="let metric of metrics">
+          <div class="metric-header">
+            <span class="metric-title">{{ metric.title }}</span>
+            <i [class]="'metric-icon bi ' + metric.icon"></i>
+          </div>
+          <div class="metric-value">{{ metric.value }}</div>
+          <div class="metric-change" [class.positive]="metric.changeType === 'positive'" [class.negative]="metric.changeType === 'negative'">
+            <i [class]="metric.changeType === 'positive' ? 'bi bi-arrow-up' : 'bi bi-arrow-down'"></i>
+            {{ metric.change }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Grid -->
+      <div class="content-grid">
+        
+        <!-- Sales Summary -->
+        <div class="content-card sales-summary">
+          <div class="card-header">
+            <h2 class="card-title">Resumen de Ventas</h2>
+            <p class="card-subtitle">Tus ventas en los últimos 6 meses</p>
+          </div>
+          <div class="card-body">
+            <div class="chart-placeholder">
+              <i class="bi bi-graph-up chart-icon"></i>
+              <p class="chart-text">Gráfico de ventas</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Sales -->
+        <div class="content-card recent-sales">
+          <div class="card-header">
+            <h2 class="card-title">Ventas Recientes</h2>
+            <p class="card-subtitle">Has realizado {{ recentSales.length }} ventas este mes</p>
+          </div>
+          <div class="card-body">
+            <div class="sales-list">
+              <div class="sale-item" *ngFor="let sale of recentSales">
+                <div class="sale-avatar" [style.background-color]="sale.avatarColor">
+                  {{ sale.initials }}
+                </div>
+                <div class="sale-info">
+                  <div class="sale-customer-name">{{ sale.customerName }}</div>
+                  <div class="sale-customer-email">{{ sale.customerEmail }}</div>
+                </div>
+                <div class="sale-amount">
+                  +{{ formatCurrency(sale.amount) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions-section">
+        <div class="section-header">
+          <h2 class="section-title">Acciones Rápidas</h2>
+          <p class="section-subtitle">Accede rápidamente a las funciones más utilizadas</p>
+        </div>
+        <div class="quick-actions-grid">
+          <button 
+            class="quick-action-btn" 
+            *ngFor="let action of quickActions"
+            (click)="onQuickAction(action)"
+          >
+            <i [class]="'action-icon bi ' + action.icon"></i>
+            <span class="action-label">{{ action.label }}</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
