@@ -9,16 +9,18 @@
     </div>
 
     <!-- Error Alert -->
-    <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
-      <i class="bi bi-exclamation-circle me-2"></i>
-      {{ errorMessage }}
-      <button
-        type="button"
-        class="btn-close"
-        (click)="errorMessage = ''"
-        aria-label="Close"
-      ></button>
-    </div>
+     @if(errorMessage()){
+       <div class="alert alert-danger alert-dismissible fade show" role="alert">
+         <i class="bi bi-exclamation-circle me-2"></i>
+         {{ errorMessage() }}
+         <button
+           type="button"
+           class="btn-close"
+           (click)="limpiarErrorMessage()"
+           aria-label="Close"
+         ></button>
+       </div>
+     }
 
     <!-- Registration Form -->
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
@@ -35,9 +37,11 @@
           placeholder="Juan Pérez"
           [class.is-invalid]="isFieldInvalid('fullName')"
         />
-        <div class="invalid-feedback" *ngIf="isFieldInvalid('fullName')">
-          {{ getFieldError('fullName') }}
-        </div>
+        @if(isFieldInvalid('fullName')){
+          <div class="invalid-feedback">
+            {{ getFieldError('fullName') }}
+          </div>
+        }
       </div>
 
       <!-- Email -->
@@ -52,10 +56,12 @@
           formControlName="email"
           placeholder="tu@empresa.com"
           [class.is-invalid]="isFieldInvalid('email')"
-        />
-        <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
-          {{ getFieldError('email') }}
-        </div>
+          />
+          @if(isFieldInvalid('email')){
+          <div class="invalid-feedback" >
+            {{ getFieldError('email') }}
+          </div>
+        }
       </div>
 
       <!-- Company (Optional) -->
@@ -71,9 +77,11 @@
           placeholder="Tu Empresa S.A."
           [class.is-invalid]="isFieldInvalid('company')"
         />
-        <div class="invalid-feedback" *ngIf="isFieldInvalid('company')">
+        @if(isFieldInvalid('company')){
+        <div class="invalid-feedback">
           {{ getFieldError('company') }}
         </div>
+      }
       </div>
 
       <!-- Password -->
@@ -83,7 +91,7 @@
         </label>
         <div class="input-group">
           <input
-            [type]="showPassword ? 'text' : 'password'"
+            [type]="showPassword() ? 'text' : 'password'"
             class="form-control"
             id="password"
             formControlName="password"
@@ -94,17 +102,20 @@
             class="btn btn-outline-secondary"
             type="button"
             (click)="togglePasswordVisibility('password')"
-            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
           >
-            <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+            <i [class]="showPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
           </button>
-          <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
-            {{ getFieldError('password') }}
-          </div>
+          @if(isFieldInvalid('password')){
+            <div class="invalid-feedback">
+              {{ getFieldError('password') }}
+            </div>
+          }
         </div>
 
         <!-- Password Strength Indicator -->
-        <div class="mt-2" *ngIf="registerForm.get('password')?.value">
+         @if(registerForm.get('password')?.value){
+        <div class="mt-2">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <small class="text-muted">Seguridad de la contraseña</small>
             <small [class]="'badge ' + passwordStrengthClass">
@@ -115,9 +126,9 @@
             <div
               class="progress-bar"
               role="progressbar"
-              [style.width.%]="passwordStrength"
+              [style.width.%]="passwordStrength()"
               [class]="passwordStrengthClass"
-              [attr.aria-valuenow]="passwordStrength"
+              [attr.aria-valuenow]="passwordStrength()"
               aria-valuemin="0"
               aria-valuemax="100"
             ></div>
@@ -125,7 +136,7 @@
           <small class="text-muted">
             Usa al menos 8 caracteres con mayúsculas, minúsculas y números
           </small>
-        </div>
+        </div>}
       </div>
 
       <!-- Confirm Password -->
@@ -135,7 +146,7 @@
         </label>
         <div class="input-group">
           <input
-            [type]="showConfirmPassword ? 'text' : 'password'"
+            [type]="showConfirmPassword() ? 'text' : 'password'"
             class="form-control"
             id="confirmPassword"
             formControlName="confirmPassword"
@@ -146,13 +157,15 @@
             class="btn btn-outline-secondary"
             type="button"
             (click)="togglePasswordVisibility('confirmPassword')"
-            [attr.aria-label]="showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            [attr.aria-label]="showConfirmPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
           >
-            <i [class]="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+            <i [class]="showConfirmPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
           </button>
-          <div class="invalid-feedback" *ngIf="isFieldInvalid('confirmPassword')">
-            {{ getFieldError('confirmPassword') }}
-          </div>
+          @if(isFieldInvalid('confirmPassword')){
+            <div class="invalid-feedback">
+              {{ getFieldError('confirmPassword') }}
+            </div>
+          }
         </div>
       </div>
 
@@ -172,24 +185,29 @@
             y la
             <a href="#" class="text-decoration-none">política de privacidad</a>
           </label>
-          <div class="invalid-feedback" *ngIf="isFieldInvalid('acceptTerms')">
-            {{ getFieldError('acceptTerms') }}
-          </div>
+          @if(isFieldInvalid('acceptTerms')){
+            <div class="invalid-feedback">
+              {{ getFieldError('acceptTerms') }}
+            </div>
+          }
         </div>
       </div>
 
       <!-- Submit Button -->
       <div class="d-grid mb-4">
-        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isLoading">
-          <span *ngIf="!isLoading">Crear cuenta</span>
-          <span *ngIf="isLoading">
-            <span
-              class="spinner-border spinner-border-sm me-2"
-              role="status"
-              aria-hidden="true"
-            ></span>
-            Creando cuenta...
-          </span>
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isLoading()">
+          @if(!isLoading()){
+            <span >Crear cuenta</span>
+          }@else {
+            <span>
+              <span
+                class="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              ></span>
+              Creando cuenta...
+            </span>
+          }
         </button>
       </div>
 
@@ -205,7 +223,7 @@
             type="button"
             class="btn btn-outline-secondary w-100"
             (click)="loginWithGoogle()"
-            [disabled]="isLoading"
+            [disabled]="isLoading()"
           >
             <i class="bi bi-google me-2"></i>
             Google
@@ -216,7 +234,7 @@
             type="button"
             class="btn btn-outline-secondary w-100"
             (click)="loginWithGitHub()"
-            [disabled]="isLoading"
+            [disabled]="isLoading()"
           >
             <i class="bi bi-github me-2"></i>
             GitHub

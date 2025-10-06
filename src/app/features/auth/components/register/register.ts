@@ -1,19 +1,18 @@
 // src/app/features/auth/components/register/register.component.ts
 
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CustomValidators } from '../../../../shared/validators/custom-validators';
 import { RegisterRequest, ApiError } from '../../models/user.model';
 import { AuthLayout } from '../../../../shared/layouts/auth-layout/auth-layout';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-register',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterLink,
     AuthLayout
@@ -23,11 +22,11 @@ import { AuthLayout } from '../../../../shared/layouts/auth-layout/auth-layout';
 })
 export class RegisterComponent implements OnInit {
   registerForm!: FormGroup;
-  isLoading = false;
-  errorMessage = '';
-  showPassword = false;
-  showConfirmPassword = false;
-  passwordStrength = 0;
+  isLoading = signal<boolean>(false);
+  errorMessage = signal<string>('');
+  showPassword = signal<boolean>(false);
+  showConfirmPassword = signal<boolean>(false);
+  passwordStrength = signal<number>(0);
 
   constructor(
     private fb: FormBuilder,
@@ -71,7 +70,7 @@ export class RegisterComponent implements OnInit {
 
   private setupPasswordStrengthCheck(): void {
     this.registerForm.get('password')?.valueChanges.subscribe(password => {
-      this.passwordStrength = this.calculatePasswordStrength(password);
+      this.passwordStrength.set(this.calculatePasswordStrength(password));
     });
   }
 
@@ -90,22 +89,22 @@ export class RegisterComponent implements OnInit {
   }
 
   get passwordStrengthClass(): string {
-    if (this.passwordStrength < 40) return 'bg-danger';
-    if (this.passwordStrength < 70) return 'bg-warning';
+    if (this.passwordStrength() < 40) return 'bg-danger';
+    if (this.passwordStrength() < 70) return 'bg-warning';
     return 'bg-success';
   }
 
   get passwordStrengthText(): string {
-    if (this.passwordStrength < 40) return 'Débil';
-    if (this.passwordStrength < 70) return 'Media';
+    if (this.passwordStrength() < 40) return 'Débil';
+    if (this.passwordStrength() < 70) return 'Media';
     return 'Fuerte';
   }
 
   togglePasswordVisibility(field: 'password' | 'confirmPassword'): void {
     if (field === 'password') {
-      this.showPassword = !this.showPassword;
+      this.showPassword.update(val => !val);
     } else {
-      this.showConfirmPassword = !this.showConfirmPassword;
+      this.showConfirmPassword.update(val => !val);
     }
   }
 
@@ -167,26 +166,22 @@ export class RegisterComponent implements OnInit {
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    this.isLoading.set(true)
+    this.errorMessage.set('');
 
     const registerData: RegisterRequest = this.registerForm.value;
-
-    this.authService.register(registerData).subscribe({
-      next: (response) => {
-        console.log('Registro exitoso:', response);
-        // Redirigir al dashboard o mostrar mensaje de verificación de email
-        this.router.navigate(['/dashboard']);
-      },
-      error: (error: ApiError) => {
-        console.error('Error en registro:', error);
-        this.errorMessage = error.message || 'Error al crear la cuenta';
-        this.isLoading = false;
-      },
-      complete: () => {
-        this.isLoading = false;
-      }
-    });
+    this.authService.register(registerData)
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: (response) => {
+          console.log('Registro exitoso:', response);
+          this.router.navigate(['/dashboard']);
+        },
+        error: (error: ApiError) => {
+          console.error('Error en registro:', error);
+          this.errorMessage.set(error.message || 'Error al crear la cuenta');
+        }
+      });
   }
 
   loginWithGoogle(): void {
@@ -199,5 +194,9 @@ export class RegisterComponent implements OnInit {
     // TODO: Implementar OAuth con GitHub
     console.log('Login with GitHub - To be implemented');
     alert('Funcionalidad de GitHub OAuth pendiente de implementar');
+  }
+
+  limpiarErrorMessage(){
+    this.errorMessage.set('');
   }
 }
