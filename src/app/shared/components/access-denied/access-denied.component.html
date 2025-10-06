@@ -18,11 +18,13 @@
         </p>
 
         <!-- User Info -->
-        <div class="user-info" *ngIf="currentUser">
-          <p class="user-role">
-            <strong>Tu rol actual:</strong> {{ getRoleName(currentUser.role) }}
-          </p>
-        </div>
+      @if (currentUser()) {
+             <div class="user-info">
+             <p class="user-role">
+               <strong>Tu rol actual:</strong> {{ getRoleName(currentUser()!.role) }}
+             </p>
+           </div>
+         }
 
         <!-- Actions -->
         <div class="actions">
