@@ -9,7 +9,8 @@
     </div>
 
     <!-- Error Alert -->
-    <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
+    @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
       <i class="bi bi-exclamation-circle me-2"></i>
       {{ errorMessage }}
       <button
@@ -19,6 +20,8 @@
         aria-label="Close"
       ></button>
     </div>
+
+    }
 
     <!-- Registration Form -->
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
@@ -35,9 +38,11 @@
           placeholder="Juan Pérez"
           [class.is-invalid]="isFieldInvalid('fullName')"
         />
-        <div class="invalid-feedback" *ngIf="isFieldInvalid('fullName')">
+        @if (isFieldInvalid('fullName')) {
+        <div class="invalid-feedback">
           {{ getFieldError('fullName') }}
         </div>
+        }
       </div>
 
       <!-- Email -->
@@ -53,9 +58,11 @@
           placeholder="tu@empresa.com"
           [class.is-invalid]="isFieldInvalid('email')"
         />
-        <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+        @if (isFieldInvalid('email')) {
+        <div class="invalid-feedback">
           {{ getFieldError('email') }}
         </div>
+        }
       </div>
 
       <!-- Company (Optional) -->
@@ -71,9 +78,11 @@
           placeholder="Tu Empresa S.A."
           [class.is-invalid]="isFieldInvalid('company')"
         />
-        <div class="invalid-feedback" *ngIf="isFieldInvalid('company')">
+        @if (isFieldInvalid('company')) {
+        <div class="invalid-feedback">
           {{ getFieldError('company') }}
         </div>
+        }
       </div>
 
       <!-- Password -->
@@ -98,9 +107,11 @@
           >
             <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
           </button>
-          <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+          @if (isFieldInvalid('password')) {
+          <div class="invalid-feedback">
             {{ getFieldError('password') }}
           </div>
+          }
         </div>
 
         <!-- Password Strength Indicator -->
@@ -150,9 +161,11 @@
           >
             <i [class]="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
           </button>
-          <div class="invalid-feedback" *ngIf="isFieldInvalid('confirmPassword')">
+          @if (isFieldInvalid('confirmPassword')) {
+          <div class="invalid-feedback">
             {{ getFieldError('confirmPassword') }}
           </div>
+          }
         </div>
       </div>
 
@@ -172,9 +185,11 @@
             y la
             <a href="#" class="text-decoration-none">política de privacidad</a>
           </label>
-          <div class="invalid-feedback" *ngIf="isFieldInvalid('acceptTerms')">
+          @if (isFieldInvalid('acceptTerms')) {
+          <div class="invalid-feedback">
             {{ getFieldError('acceptTerms') }}
           </div>
+          }
         </div>
       </div>
 

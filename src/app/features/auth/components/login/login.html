@@ -15,42 +15,46 @@
     </div>
 
     <!-- Error Alert -->
-    <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="errorMessage">
+    @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
       <i class="bi bi-exclamation-circle me-2"></i>
       {{ errorMessage }}
-      <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage = ''"
+        aria-label="Close"
+      ></button>
     </div>
+    }
 
     <!-- Login Form -->
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      
       <!-- Email -->
       <div class="mb-3">
-        <label for="email" class="form-label">
-          Correo electrónico
-        </label>
-        <input 
-          type="email" 
-          class="form-control" 
+        <label for="email" class="form-label"> Correo electrónico </label>
+        <input
+          type="email"
+          class="form-control"
           id="email"
           formControlName="email"
           placeholder="tu@empresa.com"
           [class.is-invalid]="isFieldInvalid('email')"
           autofocus
-        >
-        <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+        />
+        @if (isFieldInvalid('email')) {
+        <div class="invalid-feedback">
           {{ getFieldError('email') }}
         </div>
+        }
       </div>
 
       <!-- Password -->
       <div class="mb-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <label for="password" class="form-label mb-0">
-            Contraseña
-          </label>
-          <a 
-            href="javascript:void(0)" 
+          <label for="password" class="form-label mb-0"> Contraseña </label>
+          <a
+            href="javascript:void(0)"
             class="text-decoration-none text-primary small"
             (click)="onForgotPassword()"
           >
@@ -58,55 +62,54 @@
           </a>
         </div>
         <div class="input-group">
-          <input 
-            [type]="showPassword ? 'text' : 'password'" 
-            class="form-control" 
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            class="form-control"
             id="password"
             formControlName="password"
             placeholder="••••••••"
             [class.is-invalid]="isFieldInvalid('password')"
-          >
-          <button 
-            class="btn btn-outline-secondary" 
+          />
+          <button
+            class="btn btn-outline-secondary"
             type="button"
             (click)="togglePasswordVisibility()"
             [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
           >
             <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
           </button>
-          <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+          @if (isFieldInvalid('email')){
+          <div class="invalid-feedback">
             {{ getFieldError('password') }}
           </div>
+          }
         </div>
       </div>
 
       <!-- Remember Me -->
       <div class="mb-4">
         <div class="form-check">
-          <input 
-            class="form-check-input" 
-            type="checkbox" 
+          <input
+            class="form-check-input"
+            type="checkbox"
             id="rememberMe"
             formControlName="rememberMe"
-          >
-          <label class="form-check-label" for="rememberMe">
-            Recordarme en este dispositivo
-          </label>
+          />
+          <label class="form-check-label" for="rememberMe"> Recordarme en este dispositivo </label>
         </div>
       </div>
 
       <!-- Submit Button -->
       <div class="d-grid mb-4">
-        <button 
-          type="submit" 
-          class="btn btn-primary btn-lg"
-          [disabled]="isLoading"
-        >
-          <span *ngIf="!isLoading">Iniciar sesión</span>
-          <span *ngIf="isLoading">
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-            Iniciando sesión...
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isLoading">
+          @if (!isLoading) {
+          <span>Iniciar sesión</span>
+          } @else {
+          <span>
+            <i class="bi bi-arrow-repeat spinner-border spinner-border-sm"></i>
+            Cargando...
           </span>
+          }
         </button>
       </div>
 
@@ -118,8 +121,8 @@
       <!-- Social Login Buttons -->
       <div class="row g-3 mb-4">
         <div class="col-6">
-          <button 
-            type="button" 
+          <button
+            type="button"
             class="btn btn-outline-secondary w-100"
             (click)="loginWithGoogle()"
             [disabled]="isLoading"
@@ -129,8 +132,8 @@
           </button>
         </div>
         <div class="col-6">
-          <button 
-            type="button" 
+          <button
+            type="button"
             class="btn btn-outline-secondary w-100"
             (click)="loginWithGitHub()"
             [disabled]="isLoading"
@@ -144,7 +147,7 @@
       <!-- Register Link -->
       <div class="text-center">
         <p class="mb-0 text-muted">
-          ¿No tienes una cuenta? 
+          ¿No tienes una cuenta?
           <a routerLink="/auth/register" class="text-decoration-none fw-semibold">
             Regístrate aquí
           </a>

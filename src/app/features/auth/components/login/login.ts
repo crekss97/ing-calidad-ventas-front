@@ -65,7 +65,7 @@ export class LoginComponent implements OnInit {
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.loginForm.get(fieldName);
-    return !!(field && field.invalid && (field.dirty || field.touched));
+    return !!(field && field.invalid && (field.dirty));
   }
 
   getFieldError(fieldName: string): string {
