@@ -65,7 +65,7 @@ export class LoginComponent implements OnInit {
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.loginForm.get(fieldName);
-    return !!(field && field.invalid && (field.dirty));
+    return !!(field && field.invalid && (field.dirty || field.touched || this.submitted));
   }
 
   getFieldError(fieldName: string): string {
@@ -88,7 +88,9 @@ export class LoginComponent implements OnInit {
     return 'Campo inválido';
   }
 
+  submitted = false;
   onSubmit(): void {
+    this.submitted = true;
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -152,5 +154,6 @@ export class LoginComponent implements OnInit {
   onForgotPassword(): void {
     // Redirigir a la página de recuperación de contraseña
     this.router.navigate(['/auth/forgot-password']);
+    //alert('Funcionalidad de recuperación de contraseña pendiente de implementar');
   }
 }
