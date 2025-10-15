@@ -9,18 +9,19 @@
     </div>
 
     <!-- Error Alert -->
-     @if(errorMessage()){
-       <div class="alert alert-danger alert-dismissible fade show" role="alert">
-         <i class="bi bi-exclamation-circle me-2"></i>
-         {{ errorMessage() }}
-         <button
-           type="button"
-           class="btn-close"
-           (click)="limpiarErrorMessage()"
-           aria-label="Close"
-         ></button>
-       </div>
-     }
+    @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <i class="bi bi-exclamation-circle me-2"></i>
+      {{ errorMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage.set('')"
+        aria-label="Close"
+      ></button>
+    </div>
+
+    }
 
     <!-- Registration Form -->
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
@@ -37,10 +38,10 @@
           placeholder="Juan Pérez"
           [class.is-invalid]="isFieldInvalid('fullName')"
         />
-        @if(isFieldInvalid('fullName')){
-          <div class="invalid-feedback">
-            {{ getFieldError('fullName') }}
-          </div>
+        @if (isFieldInvalid('fullName')) {
+        <div class="invalid-feedback">
+          {{ getFieldError('fullName') }}
+        </div>
         }
       </div>
 
@@ -56,11 +57,11 @@
           formControlName="email"
           placeholder="tu@empresa.com"
           [class.is-invalid]="isFieldInvalid('email')"
-          />
-          @if(isFieldInvalid('email')){
-          <div class="invalid-feedback" >
-            {{ getFieldError('email') }}
-          </div>
+        />
+        @if (isFieldInvalid('email')) {
+        <div class="invalid-feedback">
+          {{ getFieldError('email') }}
+        </div>
         }
       </div>
 
@@ -77,11 +78,11 @@
           placeholder="Tu Empresa S.A."
           [class.is-invalid]="isFieldInvalid('company')"
         />
-        @if(isFieldInvalid('company')){
+        @if (isFieldInvalid('company')) {
         <div class="invalid-feedback">
           {{ getFieldError('company') }}
         </div>
-      }
+        }
       </div>
 
       <!-- Password -->
@@ -106,10 +107,10 @@
           >
             <i [class]="showPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
           </button>
-          @if(isFieldInvalid('password')){
-            <div class="invalid-feedback">
-              {{ getFieldError('password') }}
-            </div>
+          @if (isFieldInvalid('password')) {
+          <div class="invalid-feedback">
+            {{ getFieldError('password') }}
+          </div>
           }
         </div>
 
@@ -161,10 +162,10 @@
           >
             <i [class]="showConfirmPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
           </button>
-          @if(isFieldInvalid('confirmPassword')){
-            <div class="invalid-feedback">
-              {{ getFieldError('confirmPassword') }}
-            </div>
+          @if (isFieldInvalid('confirmPassword')) {
+          <div class="invalid-feedback">
+            {{ getFieldError('confirmPassword') }}
+          </div>
           }
         </div>
       </div>
@@ -185,10 +186,10 @@
             y la
             <a href="#" class="text-decoration-none">política de privacidad</a>
           </label>
-          @if(isFieldInvalid('acceptTerms')){
-            <div class="invalid-feedback">
-              {{ getFieldError('acceptTerms') }}
-            </div>
+          @if (isFieldInvalid('acceptTerms')) {
+          <div class="invalid-feedback">
+            {{ getFieldError('acceptTerms') }}
+          </div>
           }
         </div>
       </div>

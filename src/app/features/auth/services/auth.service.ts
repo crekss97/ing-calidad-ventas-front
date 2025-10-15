@@ -124,47 +124,7 @@ export class AuthService {
       catchError(this.handleError)
     )
   }
-
-
-
-
-
-  /**
-   * Registro de nuevo usuario
-   */
-  // register(data: RegisterRequest): Observable<AuthResponse> {
-  //   // Remover confirmPassword antes de enviar al backend
-  //   const { confirmPassword, ...registerData } = data;
-    
-  //   return this.http.post<AuthResponse>(`${this.apiUrl}/register`, registerData)
-  //     .pipe(
-  //       tap(response => {
-  //         if (response.token && response.user) {
-  //           this.storeAuthData(response.token, response.user);
-  //         }
-  //       }),
-  //       catchError(this.handleError)
-  //     );
-  // }
-
-  /**
-   * Login de usuario
-   */
-  // login(credentials: LoginRequest): Observable<AuthResponse> {
-  //   return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials)
-  //     .pipe(
-  //       tap(response => {
-  //         if (response.token && response.user) {
-  //           this.storeAuthData(response.token, response.user);
-  //         }
-  //       }),
-  //       catchError(this.handleError)
-  //     );
-  // }
-
-  /**
-   * Logout
-   */
+  
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);

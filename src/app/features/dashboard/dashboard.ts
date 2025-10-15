@@ -155,8 +155,12 @@ export class DashboardComponent implements OnInit {
 
   navigateTo(route: string): void {
     // Placeholder para navegación
-    alert(`Navegando a: ${route}\n(Funcionalidad en desarrollo)`);
-    // this.router.navigate([route]);
+    if (route === '/products') {
+      this.router.navigate([route]);
+    } else {
+      alert(`Navegando a: ${route}\n(Funcionalidad en desarrollo)`);
+    }
+     
   }
 
   formatCurrency(amount: number): string {
