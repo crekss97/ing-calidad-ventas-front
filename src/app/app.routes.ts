@@ -15,6 +15,11 @@ export const routes: Routes = [
         path: 'dashboard',
         loadChildren: () => import('./features/dashboard/dashboard-routes').then(m => m.DashboardRoutes)
     },
+    {
+        path: 'products',
+        loadChildren: () => import('./features/products/products.routes').then(m => m.ProductsRoutes)
+    },
+
     // {
     //     path: 'access-denied',
     //     component: AccessDeniedComponent,
