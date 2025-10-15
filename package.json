@@ -12,7 +12,8 @@
     "cy:run:chrome": "cypress run --browser chrome",
     "e2e": "start-server-and-test start http://localhost:4200 cy:open",
     "e2e:ci": "start-server-and-test start http://localhost:4200 cy:run",
-    "cypress:open": "cypress open --config-file tsconfig.json"
+    "cypress:open": "cypress open --config-file tsconfig.json",
+    "lint": "eslint src --ext .ts,.tsx"
   },
   "prettier": {
     "printWidth": 100,
@@ -50,6 +51,12 @@
     "@types/jasmine": "~5.1.0",
     "cypress": "^15.4.0",
     "eslint": "^9.37.0",
+    "eslint-formatter-checkstyle": "^8.40.0",
+    "eslint-formatter-html": "^2.7.3",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-security": "^3.0.1",
+    "eslint-plugin-sonarjs": "^3.0.5",
     "globals": "^16.4.0",
     "jasmine-core": "~5.9.0",
     "jiti": "^2.6.1",
