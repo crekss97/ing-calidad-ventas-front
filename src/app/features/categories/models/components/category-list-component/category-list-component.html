@@ -1,0 +1,240 @@
+<div class="lines-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="title-container">
+          <h1 class="page-title">Líneas</h1>
+          <p class="page-subtitle">Gestiona las líneas de tus productos</p>
+        </div>
+        <button class="btn btn-outline back-btn" (click)="goBack()">
+          <i class="bi bi-arrow-left"></i> Volver
+        </button>
+      </div>
+
+      <div class="header-right">
+        <a routerLink="/lines/new" class="btn btn-primary">
+          <i class="bi bi-plus-lg"></i> Nueva Línea
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-diagram-3"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">{{ totalLines() }}</div>
+        <div class="stat-label">Total Líneas</div>
+      </div>
+    </div>
+
+    <div class="stat-card success">
+      <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">{{ activeCount() }}</div>
+        <div class="stat-label">Activas</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-tags"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">{{ brands().length }}</div>
+        <div class="stat-label">Marcas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-section">
+    <div class="filters-header">
+      <button class="btn btn-outline" (click)="toggleFilters()">
+        <i class="bi bi-funnel"></i>
+        Filtros
+        @if (showFilters()) {
+        <i class="bi bi-chevron-up ms-2"></i>
+        } @else {
+        <i class="bi bi-chevron-down ms-2"></i>
+        }
+      </button>
+
+      <div class="search-box">
+        <i class="bi bi-search search-icon"></i>
+        <input
+          type="text"
+          [formControl]="searchControl"
+          placeholder="Buscar líneas..."
+          class="search-input"
+        />
+        @if (searchControl.value) {
+        <button class="clear-search" (click)="searchControl.setValue('')">
+          <i class="bi bi-x"></i>
+        </button>
+        }
+      </div>
+
+      <div class="view-controls">
+        <button
+          class="view-btn"
+          [class.active]="viewMode() === 'grid'"
+          (click)="viewMode.set('grid')"
+        >
+          <i class="bi bi-grid-3x3-gap"></i>
+        </button>
+        <button
+          class="view-btn"
+          [class.active]="viewMode() === 'list'"
+          (click)="viewMode.set('list')"
+        >
+          <i class="bi bi-list-ul"></i>
+        </button>
+      </div>
+    </div>
+
+    @if (showFilters()) {
+    <div class="filters-content">
+      <div class="filter-group">
+        <label class="filter-label">Marca</label>
+        <select
+          class="filter-select"
+          [value]="selectedBrand()"
+          (change)="onBrandChange($any($event.target).value)"
+        >
+          <option value="">Todas las marcas</option>
+          @for (brand of brands(); track brand.id) {
+          <option [value]="brand.id">{{ brand.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn btn-sm btn-secondary" (click)="clearFilters()">
+          <i class="bi bi-x-circle me-1"></i>
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+  <div class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando líneas...</p>
+  </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+  <div class="error-container">
+    <i class="bi bi-exclamation-circle"></i>
+    <p>{{ error() }}</p>
+    <button class="btn btn-primary" (click)="retryLoad()">Reintentar</button>
+  </div>
+  }
+
+  <!-- Empty -->
+  @if (!loading() && !error() && filteredLines().length === 0) {
+  <div class="empty-state">
+    <i class="bi bi-inbox"></i>
+    <h3>No se encontraron líneas</h3>
+    @if (searchControl.value || selectedBrand()) {
+    <p>Prueba modificando los filtros</p>
+    <button class="btn btn-secondary" (click)="clearFilters()">Limpiar filtros</button>
+    } @else {
+    <p>Comienza agregando una nueva línea</p>
+    <a routerLink="/lines/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-2"></i> Nueva Línea
+    </a>
+    }
+  </div>
+  }
+
+  <!-- Grid View -->
+  @if (!loading() && !error() && filteredLines().length > 0 && viewMode() === 'grid') {
+  <div class="lines-grid">
+    @for (line of filteredLines(); track line.id) {
+    <div class="line-card">
+      <div class="line-image">
+        @if (line.image) {
+        <img [src]="line.image" [alt]="line.name" />
+        } @else {
+        <div class="placeholder-image"><i class="bi bi-image"></i></div>
+        }
+      </div>
+
+      <div class="line-info">
+        <h3 class="line-name">{{ line.name }}</h3>
+        <p class="line-description">{{ line.description }}</p>
+        <span class="line-brand">{{ getBrandName(line.brandId) }}</span>
+        <div class="line-footer">
+          <span
+            class="status-badge"
+            [class.active]="line.isActive"
+            [class.inactive]="!line.isActive"
+            >{{ line.isActive ? 'Activa' : 'Inactiva' }}</span
+          >
+          <div class="line-actions">
+            <a routerLink="['/lines', line.id]" class="btn-icon" title="Ver detalles">
+              <i class="bi bi-eye"></i>
+            </a>
+            <a routerLink="['/lines', line.id, 'edit']" class="btn-icon" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <button class="btn-icon btn-delete" (click)="deleteLine(line, $event)" title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- List View -->
+  @if (!loading() && !error() && filteredLines().length > 0 && viewMode() === 'list') {
+  <table class="lines-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Marca</th>
+        <th>Descripción</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (line of filteredLines(); track line.id) {
+      <tr>
+        <td>{{ line.name }}</td>
+        <td>{{ getBrandName(line.brandId) }}</td>
+        <td>{{ line.description }}</td>
+        <td>
+          <span
+            class="status-badge"
+            [class.active]="line.isActive"
+            [class.inactive]="!line.isActive"
+            >{{ line.isActive ? 'Activa' : 'Inactiva' }}</span
+          >
+        </td>
+        <td>
+          <div class="table-actions">
+            <a routerLink="['/lines', line.id]" title="Ver"><i class="bi bi-eye"></i></a>
+            <a routerLink="['/lines', line.id, 'edit']" title="Editar"
+              ><i class="bi bi-pencil"></i
+            ></a>
+            <button (click)="deleteLine(line, $event)" title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+  }
+</div>

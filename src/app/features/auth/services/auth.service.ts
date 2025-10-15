@@ -24,7 +24,6 @@ export class AuthService {
   //Simula mientra no hay back
   private readonly isMockMode = true;
 
-
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser$: Observable<User | null>;
   
@@ -35,7 +34,7 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    const storedUser = this.getStoredUser();
+    const storedUser = this.getUserFromToken();
     this.currentUserSubject = new BehaviorSubject<User | null>(storedUser);
     this.currentUser$ = this.currentUserSubject.asObservable();
   }
@@ -172,20 +171,30 @@ export class AuthService {
     this.currentUserSubject.next(user);
   }
 
-  /**
-   * Obtener usuario almacenado
-   */
-  private getStoredUser(): User | null {
-    const userStr = localStorage.getItem(this.userKey);
-    if (userStr) {
-      try {
-        return JSON.parse(userStr);
-      } catch {
-        return null;
-      }
+ private getUserFromToken(): User | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const payload = this.decodeToken(token);
+      return {
+        id: payload.id,
+        name: payload.name,
+        email: payload.email,
+        role: payload.role
+      };
+    } catch {
+      return null;
     }
-    return null;
   }
+
+  private decodeToken(token: string): any {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(window.atob(base64));
+  }
+
+
 
   /**
    * Manejo de errores HTTP

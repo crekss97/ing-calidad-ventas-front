@@ -102,8 +102,8 @@
 
       <!-- Submit Button -->
       <div class="d-grid mb-4">
-        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isLoading">
-          @if (!isLoading) {
+        <button type="submit" class="btn btn-primary btn-lg" [disabled]="isLoading()">
+          @if (!isLoading()) {
           <span>Iniciar sesión</span>
           } @else {
           <span>
