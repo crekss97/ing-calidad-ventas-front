@@ -37,7 +37,7 @@
 .logo-icon {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #0066CC 0%, #004C99 100%);
+  background: linear-gradient(135deg, #0066cc 0%, #004c99 100%);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -68,31 +68,28 @@
   cursor: pointer;
 
   &:hover {
-    color: #0066CC;
+    color: #0066cc;
     background-color: #f3f4f6;
   }
 
   &.active {
-    color: #0066CC;
+    color: #0066cc;
     background-color: #eff6ff;
     font-weight: 600;
   }
 }
 
 .btn-logout {
-  padding: 0.5rem 1.5rem;
-  background-color: transparent;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  color: #374151;
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: #f3f4f6;
-    border-color: #d1d5db;
-  }
+  font-size: 1.5rem;
+  color: #dc3545; /* rojo tipo logout */
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.btn-logout:hover {
+  transform: scale(1.1);
+  color: #b02a37;
 }
 
 // Main Content
@@ -353,7 +350,7 @@
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #0066CC;
+    border-color: #0066cc;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     transform: translateY(-2px);
   }
@@ -410,7 +407,30 @@
   }
 
   .quick-actions-grid {
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .quick-action-btn {
+    flex-direction: column;
+    width: 70px;
+    height: 70px;
+    padding: 0.5rem;
+    border-radius: 16px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .quick-action-btn i {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .quick-action-btn .action-label {
+    font-size: 0.7rem;
+    text-align: center;
+    display: none;
   }
 }
 

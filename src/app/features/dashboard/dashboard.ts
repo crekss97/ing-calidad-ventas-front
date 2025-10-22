@@ -1,10 +1,11 @@
 // src/app/features/dashboard/dashboard.component.ts
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/services/auth.service';
 import { User } from '../auth/models/user.model';
+import { ProductFormComponent } from '../products/models/components/product-form/product-form-component';
 
 interface MetricCard {
   title: string;
@@ -32,11 +33,12 @@ interface QuickAction {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ProductFormComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
 export class DashboardComponent implements OnInit {
+  @ViewChild(ProductFormComponent) productForm!: ProductFormComponent
   currentUser: User | null = null;
   
   // Datos de métricas (simulados)
@@ -114,14 +116,14 @@ export class DashboardComponent implements OnInit {
       avatarColor: '#ec4899'
     }
   ];
-
+  
   // Acciones rápidas
-  quickActions: QuickAction[] = [
-    { icon: 'bi-cart-plus', label: 'Nueva Venta', route: '/sales/new' },
+  quickActions = signal<QuickAction[]>([
+    { icon: 'bi-cart', label: 'Nueva Venta', route: '/sales/new' },
     { icon: 'bi-person-plus', label: 'Agregar Cliente', route: '/clients/new' },
-    { icon: 'bi-box-seam', label: 'Nuevo Producto', route: '/products/new' },
-    { icon: 'bi-graph-up', label: 'Ver Reportes', route: '/reports' }
-  ];
+    { icon: 'bi-box', label: 'Nuevo Producto', route: '/products/new' },
+    { icon: 'bi-graph-up', label: 'Ver Reportes', route: '/reports' },
+  ]);
 
   constructor(
     private authService: AuthService,
@@ -148,10 +150,12 @@ export class DashboardComponent implements OnInit {
   }
 
   onQuickAction(action: QuickAction): void {
-    // Por ahora, mostrar alert
-    // En el futuro, navegar a las rutas correspondientes
+    if (action.label === 'Nuevo Producto') {
+      this.productForm.open();
+      return;
+    }
+
     alert(`Funcionalidad "${action.label}" en desarrollo.\nRuta: ${action.route}`);
-    // this.router.navigate([action.route]);
   }
 
   navigateTo(route: string): void {
@@ -161,7 +165,6 @@ export class DashboardComponent implements OnInit {
     } else {
       alert(`Navegando a: ${route}\n(Funcionalidad en desarrollo)`);
     }
-     
   }
 
   formatCurrency(amount: number): string {
