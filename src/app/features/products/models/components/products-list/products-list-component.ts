@@ -5,17 +5,19 @@ import {
   computed,
   inject,
   ChangeDetectionStrategy,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 import { ProductsService } from '../../services/products.service';
 import { Product, ProductFilters } from '../../../models/product.models';
+import { ProductFormComponent } from '../product-form/product-form-component';
 
 @Component({
   selector: 'app-products-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ProductFormComponent],
   templateUrl: './products-list-component.html',
   styleUrls: ['./products-list-component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,6 +26,8 @@ import { Product, ProductFilters } from '../../../models/product.models';
   },
 })
 export class ProductsListComponent implements OnInit {
+
+  @ViewChild(ProductFormComponent) productForm!: ProductFormComponent;
   private productsService = inject(ProductsService);
 
   constructor(private location: Location) {}
@@ -92,12 +96,12 @@ export class ProductsListComponent implements OnInit {
   private loadData(): void {
     // Cargar mock data para desarrollo
     // En producción, llamar a los endpoints reales
-    this.productsService.loadMockData();
+    //this.productsService.loadMockData();
 
     // Para producción, descomentar:
-    // this.productsService.getProducts().subscribe();
-    // this.productsService.getBrands().subscribe();
-    // this.productsService.getLines().subscribe();
+    this.productsService.getProducts().subscribe();
+    this.productsService.getBrands().subscribe();
+    this.productsService.getLines().subscribe();
   }
 
   onBrandChange(brandId: string): void {
@@ -120,6 +124,10 @@ export class ProductsListComponent implements OnInit {
     this.searchControl.setValue('');
     this.selectedBrand.set('');
     this.selectedLine.set('');
+  }
+
+  openCreateModal(): void {
+    this.productForm.open();
   }
 
   toggleViewMode(): void {

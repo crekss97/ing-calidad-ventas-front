@@ -14,10 +14,10 @@
       </div>
 
       <div class="header-right">
-        <a routerLink="/products/new" class="btn btn-primary">
+        <button class="btn btn-primary" (click)="openCreateModal()">
           <i class="bi bi-plus-lg"></i>
           Nuevo Producto
-        </a>
+        </button>
       </div>
     </div>
   </div>
@@ -270,3 +270,4 @@
   }
   <!-- ✅ cierre del bloque @if -->
 </div>
+<app-product-form></app-product-form>
