@@ -27,7 +27,9 @@
       </div>
 
       <!-- Logout Button -->
-      <button class="btn-logout" (click)="onLogout()">Cerrar sesión</button>
+      <button class="btn-logout" (click)="onLogout()" title="Cerrar sesión">
+        <i class="bi bi-box-arrow-right"></i>
+      </button>
     </div>
   </nav>
 
@@ -129,6 +131,7 @@
         <div class="quick-actions-grid">
           @for (action of quickActions(); track $index) {
           <button
+            type="button"
             class="quick-action-btn"
             (click)="onQuickAction(action)">
             <i [class]="'action-icon bi ' + action.icon"></i>
@@ -137,6 +140,7 @@
           }
 
         </div>
+        <app-product-form></app-product-form>
       </div>
     </div>
   </main>

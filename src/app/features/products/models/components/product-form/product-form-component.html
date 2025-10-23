@@ -1,0 +1,349 @@
+<!-- src/app/features/products/components/product-form/product-form.component.html -->
+
+@if (isOpen()) {
+<div class="modal-overlay" (click)="onBackdropClick($event)">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2>{{ modalTitle() }}</h2>
+      <button type="button" class="btn-close" (click)="close()" [class.disabled]="isSubmitting()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body with Scroll -->
+    <div class="modal-body">
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
+        <!-- Sección de Imágenes -->
+        <div class="form-section">
+          <h3>Imágenes del Producto</h3>
+
+          @if (imagePreviews().length > 0) {
+          <div class="images-grid">
+            @for (preview of imagePreviews(); track $index) {
+            <div class="image-preview-item">
+              <img [src]="preview" alt="Preview {{ $index + 1 }}" />
+              <button type="button" class="btn-remove-image" (click)="removeImage($index)">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+            }
+          </div>
+          }
+
+          <div class="upload-area">
+            <input
+              type="file"
+              id="imageInput"
+              accept="image/*"
+              multiple
+              (change)="onFileSelected($event)"
+              hidden
+            />
+            <label for="imageInput" class="upload-label">
+              <i class="bi bi-cloud-upload"></i>
+              <span>Subir imágenes</span>
+              <small>JPG, PNG, GIF - Max 5MB por imagen</small>
+            </label>
+          </div>
+        </div>
+
+        <!-- Información Básica -->
+        <div class="form-section">
+          <h3>Información Básica</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Nombre del Producto *</label>
+              <input
+                type="text"
+                id="name"
+                formControlName="name"
+                [class.invalid]="isFieldInvalid('name')"
+                placeholder="Ej: Nike Air Max 270"
+              />
+              @if (isFieldInvalid('name')) {
+              <span class="error-message">{{ getErrorMessage('name') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="sku">SKU *</label>
+              <input
+                type="text"
+                id="sku"
+                formControlName="sku"
+                [class.invalid]="isFieldInvalid('sku')"
+                placeholder="Ej: NIKE-AM270"
+              />
+              @if (isFieldInvalid('sku')) {
+              <span class="error-message">{{ getErrorMessage('sku') }}</span>
+              } @else {
+              <small>Solo mayúsculas, números y guiones</small>
+              }
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="description">Descripción *</label>
+            <textarea
+              id="description"
+              formControlName="description"
+              [class.invalid]="isFieldInvalid('description')"
+              rows="3"
+              placeholder="Describe las características del producto..."
+            ></textarea>
+            @if (isFieldInvalid('description')) {
+            <span class="error-message">{{ getErrorMessage('description') }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Marca y Línea -->
+        <div class="form-section">
+          <h3>Marca y Línea</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="brandId">Marca *</label>
+              <div class="input-with-button">
+                <select
+                  id="brandId"
+                  formControlName="brandId"
+                  [class.invalid]="isFieldInvalid('brandId')"
+                >
+                  <option value="">Seleccionar marca</option>
+                  @for (brand of brands(); track brand.id) {
+                  <option [value]="brand.id">{{ brand.name }}</option>
+                  }
+                </select>
+                <button
+                  type="button"
+                  class="btn-quick-create"
+                  (click)="openQuickCreateModal('brand')"
+                  title="Crear marca rápida"
+                >
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+              </div>
+              @if (isFieldInvalid('brandId')) {
+              <span class="error-message">{{ getErrorMessage('brandId') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="lineId">Línea *</label>
+              <div class="input-with-button">
+                <select
+                  id="lineId"
+                  formControlName="lineId"
+                  [class.invalid]="isFieldInvalid('lineId')"
+                >
+                  <option value="">Seleccionar línea</option>
+                  @for (line of availableLines(); track line.id) {
+                  <option [value]="line.id">{{ line.name }}</option>
+                  }
+                </select>
+                <button
+                  type="button"
+                  class="btn-quick-create"
+                  (click)="!isLineButtonDisable() && openQuickCreateModal('line')"
+                  [class.disabled]="isLineButtonDisable()"
+                  title="Crear línea rápida"
+                >
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+              </div>
+              @if (isFieldInvalid('lineId')) {
+              <span class="error-message">{{ getErrorMessage('lineId') }}</span>
+              } @else if (!productForm.get('brandId')?.value) {
+              <small class="info-text">Primero selecciona una marca</small>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Precios y Costos -->
+        <div class="form-section">
+          <h3>Precios y Costos</h3>
+
+          <div class="form-row three-cols">
+            <div class="form-group">
+              <label for="cost">Costo</label>
+              <div class="input-icon">
+                <span class="input-prefix">$</span>
+                <input
+                  type="number"
+                  id="cost"
+                  formControlName="cost"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="price">Precio de Venta *</label>
+              <div class="input-icon">
+                <span class="input-prefix">$</span>
+                <input
+                  type="number"
+                  id="price"
+                  formControlName="price"
+                  [class.invalid]="isFieldInvalid('price')"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                />
+              </div>
+              @if (isFieldInvalid('price')) {
+              <span class="error-message">{{ getErrorMessage('price') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>Margen de Ganancia</label>
+              <div
+                class="calculated-field"
+                [class.positive]="profitMargin() > 0"
+                [class.negative]="profitMargin() < 0"
+              >
+                <strong>{{ profitMargin() | number : '1.1-1' }}%</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventario -->
+        <div class="form-section">
+          <h3>Control de Inventario</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="stock">Stock Actual *</label>
+              <input
+                type="number"
+                id="stock"
+                formControlName="stock"
+                [class.invalid]="isFieldInvalid('stock')"
+                min="0"
+                placeholder="0"
+              />
+              @if (isFieldInvalid('stock')) {
+              <span class="error-message">{{ getErrorMessage('stock') }}</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label for="minStock">Stock Mínimo</label>
+              <input
+                type="number"
+                id="minStock"
+                formControlName="minStock"
+                min="0"
+                placeholder="10"
+              />
+              <small>Alerta cuando el stock sea menor o igual a este valor</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado -->
+        <div class="form-section">
+          <h3>Estado del Producto</h3>
+
+          <div class="form-options">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="isActive" />
+              <span>Producto activo</span>
+              <small>Los productos inactivos no aparecerán en la tienda</small>
+            </label>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="close()" [class.disabled]="isSubmitting()">
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        (click)="onSubmit()"
+        [class.disabled]="isSubmitting() || productForm.invalid"
+      >
+        @if (isSubmitting()) {
+        <span class="spinner-small"></span>
+        }
+        {{ submitButtonText() }}
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Quick Create Modal -->
+@if (quickCreateModal().isOpen) {
+<div class="modal-overlay quick-create-overlay" (click)="closeQuickCreateModal()">
+  <div class="modal-content quick-create-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Crear {{ quickCreateModal().type === 'brand' ? 'Marca' : 'Línea' }}</h3>
+      <button type="button" class="btn-close-modal" (click)="closeQuickCreateModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="modalName">Nombre *</label>
+        <input
+          type="text"
+          id="modalName"
+          [value]="quickCreateModal().name"
+          (input)="updateQuickCreateField('name', $any($event.target).value)"
+          placeholder="Ingresa el nombre"
+          (keyup.enter)="handleQuickCreate()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="modalDescription">Descripción</label>
+        <textarea
+          id="modalDescription"
+          [value]="quickCreateModal().description"
+          (input)="updateQuickCreateField('description', $any($event.target).value)"
+          rows="3"
+          placeholder="Descripción opcional"
+        ></textarea>
+      </div>
+
+      @if (quickCreateModal().type === 'line' && !productForm.get('brandId')?.value) {
+      <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        Primero debes seleccionar una marca
+      </div>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeQuickCreateModal()">
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="handleQuickCreate()"
+        [class.disabled]="
+          !quickCreateModal().name.trim() ||
+          (quickCreateModal().type === 'line' && !productForm.get('brandId')?.value)
+        "
+      >
+        Crear
+      </button>
+    </div>
+  </div>
+</div>
+}
