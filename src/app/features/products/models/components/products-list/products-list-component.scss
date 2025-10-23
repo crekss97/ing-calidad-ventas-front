@@ -21,6 +21,12 @@
   flex-direction: column;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap:1rem;
+}
+
 .title-container {
   text-align: left;
   margin-bottom: 1rem;

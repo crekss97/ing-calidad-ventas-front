@@ -20,8 +20,8 @@ export const routes: Routes = [
         loadChildren: () => import('./features/products/products.routes').then(m => m.ProductsRoutes)
     },
     {
-        path: 'categories',
-        loadChildren: () => import('./features/categories/categories.routes').then(m => m.CategoryRoutes)
+        path: 'lines',
+        loadChildren: () => import('./features/lines/lines.routes').then(m => m.LineRoutes)
     },
 
     // {

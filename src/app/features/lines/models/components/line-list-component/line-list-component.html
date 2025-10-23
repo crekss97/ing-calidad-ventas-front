@@ -13,9 +13,9 @@
       </div>
 
       <div class="header-right">
-        <a routerLink="/lines/new" class="btn btn-primary">
+        <button class="btn btn-primary" (click)="openNewLineModal()">
           <i class="bi bi-plus-lg"></i> Nueva Línea
-        </a>
+        </button>
       </div>
     </div>
   </div>
@@ -181,7 +181,7 @@
             <a routerLink="['/lines', line.id]" class="btn-icon" title="Ver detalles">
               <i class="bi bi-eye"></i>
             </a>
-            <a routerLink="['/lines', line.id, 'edit']" class="btn-icon" title="Editar">
+            <a (click)="openEditLineModal(line)" class="btn-icon" title="Editar">
               <i class="bi bi-pencil"></i>
             </a>
             <button class="btn-icon btn-delete" (click)="deleteLine(line, $event)" title="Eliminar">
@@ -224,9 +224,10 @@
         <td>
           <div class="table-actions">
             <a routerLink="['/lines', line.id]" title="Ver"><i class="bi bi-eye"></i></a>
-            <a routerLink="['/lines', line.id, 'edit']" title="Editar"
-              ><i class="bi bi-pencil"></i
-            ></a>
+          <button class="btn btn-primary" (click)="openEditLineModal(line)" title="Editar">
+            <i class="bi bi-pencil"></i>
+          </button>
+
             <button (click)="deleteLine(line, $event)" title="Eliminar">
               <i class="bi bi-trash"></i>
             </button>
@@ -238,3 +239,7 @@
   </table>
   }
 </div>
+
+
+<!-- Bootstrap modal component -->
+<app-new-line-component #lineFormModal (submitted)="onLineCreated($event)"></app-new-line-component>

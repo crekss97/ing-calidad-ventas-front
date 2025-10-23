@@ -11,11 +11,12 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 import { ProductsService } from '../../services/products.service';
 import { Product, ProductFilters } from '../../../models/product.models';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-products-list',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './products-list-component.html',
   styleUrls: ['./products-list-component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,

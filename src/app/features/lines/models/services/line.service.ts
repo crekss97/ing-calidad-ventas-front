@@ -12,7 +12,7 @@ interface LineFilters {
 @Injectable({
   providedIn: 'root'
 })
-export class CategoryService {
+export class LineService {
   private apiUrl = 'http://localhost:3000/api';
 
   // ==================== STATE SIGNALS ====================

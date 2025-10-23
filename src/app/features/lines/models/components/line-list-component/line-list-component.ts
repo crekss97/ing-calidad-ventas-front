@@ -1,18 +1,19 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CategoryService } from '../../services/category.service';
+import { Component, computed, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { LineService } from '../../services/line.service';
 import { Line } from '../../../../products/models/product.models';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 import { Location } from '@angular/common';
+import { NewLineComponent } from '../../new-line-component/new-line-component';
 @Component({
-  selector: 'app-category-list-component',
-  imports: [ReactiveFormsModule],
-  templateUrl: './category-list-component.html',
-  styleUrl: './category-list-component.scss'
+  selector: 'app-line-list-component',
+  imports: [ReactiveFormsModule, NewLineComponent],
+  templateUrl: './line-list-component.html',
+  styleUrl: './line-list-component.scss'
 })
-export class CategoryListComponent implements OnInit{
-  private categoryService = inject(CategoryService);
-
+export class LineListComponent implements OnInit{
+  private lineService = inject(LineService);
+  @ViewChild('lineFormModal') lineFormModal?: NewLineComponent;
   private location = inject(Location);
 
   // --- Filtros y controles
@@ -22,10 +23,10 @@ export class CategoryListComponent implements OnInit{
   showFilters = signal(false);
 
   // --- Datos
-  lines = this.categoryService.lines;
-  brands = this.categoryService.brands;
-  loading = this.categoryService.loading;
-  error = this.categoryService.error;
+  lines = this.lineService.lines;
+  brands = this.lineService.brands;
+  loading = this.lineService.loading;
+  error = this.lineService.error;
 
   // --- Computed
   filteredLines = computed(() => {
@@ -64,7 +65,7 @@ export class CategoryListComponent implements OnInit{
   }
 
   private loadData(): void {
-    this.categoryService.loadMockData();
+    this.lineService.loadMockData();
 
     // Producción:
     // this.linesService.getLines().subscribe();
@@ -91,7 +92,7 @@ export class CategoryListComponent implements OnInit{
   deleteLine(line: Line, event: Event): void {
     event.stopPropagation();
     if (confirm(`¿Eliminar la línea "${line.name}"?`)) {
-      this.categoryService.deleteLine(line.id).subscribe({
+      this.lineService.deleteLine(line.id).subscribe({
         next: () => console.log('Línea eliminada correctamente'),
         error: (err) => alert('Error al eliminar línea: ' + err.message),
       });
@@ -100,6 +101,19 @@ export class CategoryListComponent implements OnInit{
 
   getBrandName(brandId: string): string {
     return this.brands().find((b) => b.id === brandId)?.name || 'Sin marca';
+  }
+
+  
+  openNewLineModal(): void {
+    this.lineFormModal?.open('create');
+  }
+
+  openEditLineModal(line: Line): void {
+    this.lineFormModal?.open('edit', line);
+  }
+
+  onLineCreated(lineData: any): void {
+    this.lineService.createLine(lineData).subscribe();
   }
 
   goBack(): void {
