@@ -23,6 +23,8 @@ export interface Brand {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  hasProducts?: boolean;
+
 }
 
 export interface Line {
