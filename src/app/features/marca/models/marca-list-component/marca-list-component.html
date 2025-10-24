@@ -1,0 +1,145 @@
+<div class="brands-page">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="title-container">
+          <h1 class="page-title">Marcas</h1>
+          <p class="page-subtitle">Administra las marcas del catálogo</p>
+        </div>
+
+        <button class="btn btn-outline back-btn" (click)="goBack()">
+          <i class="bi bi-arrow-left"></i> Volver
+        </button>
+      </div>
+
+      <div class="header-right">
+        <a routerLink="/brands/new" class="btn btn-primary" >
+
+           <!--
+            esto es para abrir el modal cuando lo implemente
+           (click)="openCreateModal()"-->
+          <i class="bi bi-plus-lg"></i>
+          Nueva Marca
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon"><i class="bi bi-tags"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">{{ filteredBrands().length }}</div>
+        <div class="stat-label">Total Marcas</div>
+      </div>
+    </div>
+
+    <div class="stat-card warning">
+      <div class="stat-icon"><i class="bi bi-exclamation-circle"></i></div>
+      <div class="stat-content">
+        <div class="stat-value">{{ undeletableBrands().length }}</div>
+        <div class="stat-label">Con Productos Asociados</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="filters-section">
+    <div class="filters-header">
+      <div class="search-box">
+        <i class="bi bi-search search-icon"></i>
+        <input
+          type="text"
+          [formControl]="searchControl"
+          placeholder="Buscar marcas..."
+          class="search-input"
+        />
+        @if (searchControl.value) {
+        <button class="clear-search" (click)="searchControl.setValue('')">
+          <i class="bi bi-x"></i>
+        </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+  <div class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando marcas...</p>
+  </div>
+  }
+
+  <!-- Error State -->
+  @if (error()) {
+  <div class="error-container">
+    <i class="bi bi-exclamation-circle"></i>
+    <p>{{ error() }}</p>
+    <button class="btn btn-primary" (click)="retryLoad()">Reintentar</button>
+  </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading && !error && filteredBrands().length === 0) {
+  <div class="empty-state">
+    <i class="bi bi-inbox"></i>
+    <h3>No se encontraron marcas</h3>
+    <p>Comienza agregando tu primera marca</p>
+    <a routerLink="/brands/new" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-2"></i>
+      Nueva Marca
+    </a>
+  </div>
+  }
+
+  <!-- Brands Grid View -->
+  @if (!loading && !error && filteredBrands().length > 0) {
+  <div class="brands-grid">
+    @for (brand of filteredBrands(); track brand.id) {
+    <div class="brand-card">
+      <div class="brand-logo">
+        @if (brand.logo) {
+        <img [src]="brand.logo" [alt]="brand.name" />
+        } @else {
+        <div class="placeholder-image">
+          <i class="bi bi-image"></i>
+        </div>
+        }
+      </div>
+
+      <div class="brand-info">
+        <h3 class="brand-name">{{ brand.name }}</h3>
+        <p class="brand-description">{{ brand.description }}</p>
+
+        <div class="brand-footer">
+          <div class="brand-actions">
+            <a routerLink="['/brands', brand.id]" class="btn-icon" title="Ver detalles">
+              <i class="bi bi-eye"></i>
+            </a>
+            <a routerLink="['/brands', brand.id, 'edit']" class="btn-icon" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <button
+              class="btn-icon btn-delete"
+              (click)="deleteBrand(brand)"
+              [disabled]="brand.hasProducts"
+              title="Eliminar"
+            >
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+          @if (brand.hasProducts) {
+          <div class="delete-warning">
+            <i class="bi bi-info-circle"></i> No se puede eliminar: tiene productos asociados
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>

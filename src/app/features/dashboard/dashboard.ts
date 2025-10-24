@@ -39,7 +39,7 @@ interface QuickAction {
 })
 export class DashboardComponent implements OnInit {
   @ViewChild(ProductFormComponent) productForm!: ProductFormComponent
-  currentUser: User | null = null;
+  currentUser = signal<User | null>(null);
   
   // Datos de métricas (simulados)
   metrics = signal<MetricCard[]>([
@@ -115,7 +115,7 @@ export class DashboardComponent implements OnInit {
       initials: 'SD',
       avatarColor: '#ec4899'
     }
-  ];
+  ]);
   
   // Acciones rápidas
   quickActions = signal<QuickAction[]>([

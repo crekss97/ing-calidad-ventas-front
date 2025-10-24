@@ -1,0 +1,169 @@
+/* Variables simples */
+$bg: #f8fafc;
+$card-bg: #ffffff;
+$muted: #6b7280;
+$primary: #0d6efd;
+$danger: #dc3545;
+$success: #198754;
+$border: #e6e9ef;
+$shadow: 0 6px 18px rgba(16,24,40,0.06);
+
+/* Page */
+.brands-page {
+  padding: 1.5rem;
+  background: $bg;
+  min-height: 100vh;
+  color: #0f172a;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+/* Header */
+.page-header {
+  margin-bottom: 1rem;
+  .header-content {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    .header-left {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      .title-container {
+        h1.page-title { margin: 0; font-size: 1.25rem; font-weight: 700; }
+        p.page-subtitle { margin: 0; color: $muted; font-size: 0.9rem; }
+      }
+      .back-btn { align-self: flex-start; }
+    }
+  }
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 1rem 0;
+  .stat-card {
+    background: $card-bg;
+    border: 1px solid $border;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    box-shadow: $shadow;
+    .stat-icon { font-size: 1.6rem; color: $muted; }
+    .stat-value { font-weight: 700; font-size: 1.1rem; }
+    .stat-label { color: $muted; font-size: 0.85rem; }
+    &.success { .stat-icon { color: $success; } }
+  }
+}
+
+/* Filters */
+.filters-section {
+  background: transparent;
+  margin-bottom: 1rem;
+  .filters-header {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+      max-width: 520px;
+      .search-input {
+        flex: 1;
+        border: 1px solid $border;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        background: $card-bg;
+      }
+      .clear-search { background: transparent; border: none; color: $muted; }
+    }
+    .view-controls { display: flex; gap: 0.5rem;
+      .view-btn { border: 1px solid $border; background: $card-bg; padding: 0.4rem; border-radius: 6px;
+        &.active { border-color: $primary; color: $primary; background: rgba(#0d6efd, 0.06); }
+      }
+    }
+  }
+
+  .filters-content {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    .filter-group { display: flex; flex-direction: column; }
+    .filter-actions { margin-left: auto; }
+  }
+}
+
+/* Loading / error / empty */
+.loading-container, .error-container, .empty-state {
+  background: $card-bg;
+  border: 1px dashed $border;
+  padding: 1.25rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  color: $muted;
+  box-shadow: $shadow;
+  .spinner { width: 36px; height: 36px; margin: 0 auto 0.5rem; border-radius: 50%; border: 4px solid rgba(0,0,0,0.06); border-top-color: $primary; animation: spin 1s linear infinite; }
+}
+
+/* Grid of brands */
+.brands-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.brand-card {
+  background: $card-bg;
+  border: 1px solid $border;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+  &:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(2,6,23,0.06); }
+
+  .brand-logo {
+    width: 64px; height: 64px; flex: 0 0 64px; border-radius: 6px; overflow: hidden; display:flex; align-items:center; justify-content:center;
+    img { width: 100%; height: 100%; object-fit: cover; display:block; }
+    .placeholder-image { color: $muted; font-size: 1.5rem; }
+  }
+
+  .brand-info { flex: 1; display:flex; flex-direction:column; justify-content:space-between;
+    .brand-name { margin: 0; font-weight: 700; font-size: 1rem; }
+    .brand-description { margin: 0.25rem 0 0; color: $muted; font-size: 0.9rem; max-height: 2.4rem; overflow: hidden; text-overflow: ellipsis; }
+    .brand-footer { display:flex; justify-content:space-between; align-items:center; margin-top: 0.5rem;
+      .status-badge { padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.78rem; border: 1px solid transparent; &.active { background: rgba($success, .08); color: $success; } &.inactive { background: rgba(#6b7280, .06); color: $muted; } }
+      .brand-actions { display:flex; gap: 0.5rem; .btn-icon { background: transparent; border: none; color: $muted; padding: 0.25rem; border-radius: 6px; &:hover { color: $primary; background: rgba($primary, .06); } &.btn-delete:disabled { opacity: 0.5; cursor: not-allowed; color: $muted; } } }
+    }
+  }
+}
+
+/* Table view */
+.brands-table { width: 100%; border-collapse: collapse; margin-top: 1rem;
+  th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid $border; vertical-align: middle; }
+  .logo-cell .row-logo { width: 56px; height: 40px; object-fit: cover; border-radius: 6px; }
+  .table-actions { display:flex; gap: 0.5rem; }
+}
+
+/* Accessibility focus */
+button:focus, a:focus { outline: 3px solid rgba($primary, .12); outline-offset: 2px; }
+
+/* Animations */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .filters-header { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .brands-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+}

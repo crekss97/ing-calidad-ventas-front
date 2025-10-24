@@ -20,10 +20,9 @@ export const routes: Routes = [
         path: 'products',
         loadChildren: () => import('./features/products/products.routes').then(m => m.ProductsRoutes)
     },
-    {path: 'marca', component: MarcaListComponent}
+    {path: 'marca', component: MarcaListComponent},
     
-    {
-        path: 'lines',
+    {path: 'lines',
         loadChildren: () => import('./features/lines/lines.routes').then(m => m.LineRoutes)
     },
 
