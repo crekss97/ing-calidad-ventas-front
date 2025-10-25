@@ -64,9 +64,7 @@ export class ProductsService {
     this.linesState().filter(line => line.brandId === brandId)
   );
 
-  constructor(private http: HttpClient) {
-    console.log('API URL:', this.apiUrl);
-  }
+  constructor(private http: HttpClient) { }
 
   // ==================== PRODUCTS ====================
 
