@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  vercelUrl: '${VITE_VERCEL_URL}'
+  vercelUrl: 'https://ing-calidad-ventas-back.vercel.app'
 };
