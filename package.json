@@ -12,7 +12,8 @@
     "cy:run:chrome": "cypress run --browser chrome",
     "e2e": "start-server-and-test start http://localhost:4200 cy:open",
     "e2e:ci": "start-server-and-test start http://localhost:4200 cy:run",
-    "cypress:open": "cypress open --config-file tsconfig.json"
+    "cypress:open": "cypress open --config-file tsconfig.json",
+    "build:vercel": "VITE_VERCEL_URL=$VITE_VERCEL_URL node ./scripts/set-env.js && ng build"
   },
   "prettier": {
     "printWidth": 100,
@@ -26,6 +27,7 @@
       }
     ]
   },
+  
   "private": true,
   "dependencies": {
     "@angular/common": "^20.3.0",

@@ -9,12 +9,13 @@ import {
   PaginatedResponse,
   ProductFormData 
 } from '../../models/product.models';
+import { environment } from '../../../../environments/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductsService {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = environment.vercelUrl;
 
   // State con Signals
   private productsState = signal<Product[]>([]);

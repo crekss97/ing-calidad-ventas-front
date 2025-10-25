@@ -1,4 +1,4 @@
 export const environment = {
-    production: false,
-    apiUrl: 'http://localhost:3000/api'
-}
+  production: false,
+  vercelUrl: '${VITE_VERCEL_URL}'
+};
