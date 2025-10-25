@@ -13,13 +13,15 @@ import {
   ApiError, 
   UserRole
 } from '../models/user.model';
+import { environment } from '../../../environments/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth'; // Ajustar según tu backend
+  
+  private apiUrl = environment.vercelUrl;
   
   //Simula mientra no hay back
   private readonly isMockMode = true;

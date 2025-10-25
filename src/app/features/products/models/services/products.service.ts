@@ -9,13 +9,14 @@ import {
   PaginatedResponse,
   ProductFormData 
 } from '../../models/product.models';
+import { environment } from '../../../../environments/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductsService {
-  private apiUrl = 'http://localhost:3000/api';
-
+  private apiUrl = environment.vercelUrl;
+  
   // State con Signals
   private productsState = signal<Product[]>([]);
   private brandsState = signal<Brand[]>([]);
@@ -63,7 +64,7 @@ export class ProductsService {
     this.linesState().filter(line => line.brandId === brandId)
   );
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ==================== PRODUCTS ====================
 
@@ -79,7 +80,7 @@ export class ProductsService {
     if (filters?.maxPrice) params = params.set('maxPrice', filters.maxPrice.toString());
     if (filters?.inStock !== undefined) params = params.set('inStock', filters.inStock.toString());
 
-    return this.http.get<PaginatedResponse<Product>>(`${this.apiUrl}/products`, { params }).pipe(
+    return this.http.get<PaginatedResponse<Product>>(`${this.apiUrl}/producto`, { params }).pipe(
       tap(response => {
         this.productsState.set(response.data);
         this.loadingState.set(false);
