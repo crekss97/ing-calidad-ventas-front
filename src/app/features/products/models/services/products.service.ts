@@ -16,7 +16,7 @@ import { environment } from '../../../../environments/environments';
 })
 export class ProductsService {
   private apiUrl = environment.vercelUrl;
-
+  
   // State con Signals
   private productsState = signal<Product[]>([]);
   private brandsState = signal<Brand[]>([]);
@@ -64,7 +64,9 @@ export class ProductsService {
     this.linesState().filter(line => line.brandId === brandId)
   );
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    console.log('API URL:', this.apiUrl);
+  }
 
   // ==================== PRODUCTS ====================
 
