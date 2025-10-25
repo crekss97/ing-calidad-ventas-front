@@ -80,7 +80,7 @@ export class ProductsService {
     if (filters?.maxPrice) params = params.set('maxPrice', filters.maxPrice.toString());
     if (filters?.inStock !== undefined) params = params.set('inStock', filters.inStock.toString());
 
-    return this.http.get<PaginatedResponse<Product>>(`${this.apiUrl}/products`, { params }).pipe(
+    return this.http.get<PaginatedResponse<Product>>(`${this.apiUrl}/producto`, { params }).pipe(
       tap(response => {
         this.productsState.set(response.data);
         this.loadingState.set(false);
