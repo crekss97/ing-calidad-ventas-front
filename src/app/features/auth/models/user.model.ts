@@ -3,6 +3,7 @@
 export interface RegisterRequest {
   fullName: string;
   email: string;
+  phone: string;
   company?: string;
   password: string;
   confirmPassword: string;
@@ -14,19 +15,25 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface LoginBackendRequest {
+  correo: string;
+  contraseña: string
+}
+
 export interface AuthResponse {
+  access_token: string;
   user: User;
-  token: string;
   message?: string;
 }
 
 export interface User {
   id: number;
-  name: string;
+  nombre: string;
   fullName?: string;
-  email: string;
+  correo: string;
   company?: string;
-  role: UserRole;
+  rol: UserRole;
+  token?:string;
   isActive?: boolean;
   emailVerified?: boolean;
   createdAt?: Date;

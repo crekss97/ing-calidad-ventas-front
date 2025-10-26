@@ -51,6 +51,10 @@ export class RegisterComponent implements OnInit {
         Validators.required,
         CustomValidators.email()
       ]],
+      phone: ['', [
+        Validators.required,
+        Validators.pattern(/^\+?[0-9]{10,15}$/)
+      ]],
       company: ['', [
         Validators.maxLength(100)
       ]],
@@ -154,6 +158,7 @@ export class RegisterComponent implements OnInit {
     const messages: { [key: string]: string } = {
       fullName: 'El nombre es obligatorio',
       email: 'El email es obligatorio',
+      phone: 'El teléfono es obligatorio',
       password: 'La contraseña es obligatoria',
       confirmPassword: 'Confirma tu contraseña',
       acceptTerms: 'Debes aceptar los términos'

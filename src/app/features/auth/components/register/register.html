@@ -65,6 +65,26 @@
         }
       </div>
 
+      <!-- Campo telefono -->
+
+      <div class="mb-3">
+        <label for="phone" class="form-label">
+          Teléfono <span class="text-danger">*</span>
+        </label>
+        <input
+          type="text"
+          class="form-control"
+          id="phone"
+          formControlName="phone"
+          placeholder="+34 600 123 456"
+          [class.is-invalid]="isFieldInvalid('phone')"
+        />
+        @if (isFieldInvalid('phone')) {
+        <div class="invalid-feedback">
+          {{ getFieldError('phone') }}
+        </div>
+        }
+      </div>
       <!-- Company (Optional) -->
       <div class="mb-3">
         <label for="company" class="form-label">

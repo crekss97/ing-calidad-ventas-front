@@ -3,7 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
-import { catchError, tap, delay } from 'rxjs/operators';
+import { catchError, tap, delay, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { 
   RegisterRequest, 
@@ -13,19 +13,31 @@ import {
   ApiError, 
   UserRole
 } from '../models/user.model';
+import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environments';
+
+interface TokenPayload {
+  id: number;
+  nombre: string;
+  correo: string;
+  rol: UserRole;
+  exp: number;
+  iat: number;
+}
+
+// Interfaz para la respuesta real del backend
+interface BackendLoginResponse {
+  token: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
-
 export class AuthService {
-  
-  private apiUrl = environment.vercelUrl;
-  
-  //Simula mientra no hay back
-  private readonly isMockMode = true;
 
+  private apiUrl = environment.vercelUrl;
+  //private apiUrl = 'http://localhost:3000'; 
+  private readonly isMockMode = false;
 
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser$: Observable<User | null>;
@@ -35,25 +47,21 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    private jwtHelper: JwtHelperService
   ) {
     const storedUser = this.getStoredUser();
     this.currentUserSubject = new BehaviorSubject<User | null>(storedUser);
     this.currentUser$ = this.currentUserSubject.asObservable();
   }
 
-  /**
-   * Obtiene el usuario actual
-   */
   public get currentUserValue(): User | null {
     return this.currentUserSubject.value;
   }
 
-  /**
-   * Verifica si el usuario está autenticado
-   */
   public get isAuthenticated(): boolean {
-    return !!this.getToken() && !!this.currentUserValue;
+    const token = this.getToken();
+    return !!token && !this.jwtHelper.isTokenExpired(token);
   }
 
   //===============
@@ -63,35 +71,74 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     if (this.isMockMode) {
       console.log('Modo Mock: Login simulado');
-      //simular delay de red de 800ms
       return of({
-        token: 'fake-jwt-token',
+        access_token: 'fake-jwt-token',
         user: {
           id: 1,
-          name: 'Mock User',
-          email: credentials.email,
-          role: 'ADMIN' as UserRole
+          nombre: 'Mock User',
+          correo: credentials.email,
+          rol: 'ADMIN' as UserRole
         }
-      }).pipe (
+      }).pipe(
         delay(800),
         tap(response => {
-          this.storeAuthData(response.token, response.user);
+          this.storeAuthData(response.access_token, response.user);
         })
       );
     }
 
+    const body = {
+      correo: credentials.email,
+      contraseña: credentials.password
+    };
 
-    //Para cuando haya backend real
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials)
+    // Petición al backend real
+    return this.http.post<BackendLoginResponse>(`${this.apiUrl}/auth/login`, body)
       .pipe(
-        tap(response => {
-          if (response.token && response.user) {
-            this.storeAuthData(response.token, response.user);
+        map(res => {
+          const token = res.token;
+          
+          if (!token) {
+            console.error('❌ No se recibió token en la respuesta');
+            throw new Error('Respuesta del servidor sin token');
+          }
+
+          try {
+            console.log('🔍 Token recibido del backend:', token);
+            
+            // Decodificar el token JWT para extraer la información del usuario
+            const decodedToken = this.jwtHelper.decodeToken(token) as TokenPayload;
+            
+            console.log('👤 Token decodificado:', decodedToken);
+
+            // Construir el objeto User a partir del token
+            const user: User = {
+              id: decodedToken.id,
+              nombre: decodedToken.nombre,
+              correo: decodedToken.correo,
+              rol: decodedToken.rol
+            };
+
+            // Guardar token y usuario
+            this.storeAuthData(token, user);
+
+            console.log('✅ Usuario autenticado exitosamente:', user);
+
+            // Retornar en formato AuthResponse para compatibilidad con el componente
+            return {
+              access_token: token,
+              user: user
+            } as AuthResponse;
+
+          } catch (e) {
+            console.error('❌ Error al decodificar el token:', e);
+            throw new Error('Token inválido recibido del servidor');
           }
         }),
         catchError(this.handleError)
       );
   }
+
   //===============
   //   REGISTER
   //===============
@@ -100,31 +147,69 @@ export class AuthService {
       console.log('Modo Mock: Registro simulado');
       const mockUser: User = {
         id: 2, 
-        name: data.fullName,
-        email: data.email,
-        role: 'CLIENT' as UserRole
+        nombre: data.fullName,
+        correo: data.email,
+        rol: 'CLIENT' as UserRole
       };
       return of({
-        token: 'fake-jwt-token',
+        access_token: 'fake-jwt-token',
         user: mockUser
       }).pipe(
         delay(800),
         tap(response => {
-          this.storeAuthData(response.token, response.user);
+          this.storeAuthData(response.access_token, response.user);
         })
       );
     }
 
-    const { confirmPassword, ...registerData } = data;
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, registerData)
-    .pipe(
-      tap(response => {
-        if (response.token && response.user) {
-          this.storeAuthData(response.token, response.user);
-        }
-      }),
-      catchError(this.handleError)
-    )
+    const backenRegisterData = {
+      nombre: data.fullName,
+      correo: data.email,
+      dirEnvio: data.company || 'No especificado',
+      contraseña: data.password,
+      telefono: data.phone,
+      rol: 'ADMIN' as const
+    };
+
+    console.log('Datos transformados para el backend:', backenRegisterData);
+    
+    return this.http.post<BackendLoginResponse>(`${this.apiUrl}/auth/register`, backenRegisterData)
+      .pipe(
+        map(res => {
+          const token = res.token;
+          
+          if (!token) {
+            console.error('❌ No se recibió token en la respuesta de registro');
+            throw new Error('Respuesta del servidor sin token');
+          }
+
+          try {
+            const decodedToken = this.jwtHelper.decodeToken(token) as TokenPayload;
+            
+            const user: User = {
+              id: decodedToken.id,
+              nombre: decodedToken.nombre,
+              correo: decodedToken.correo,
+              rol: decodedToken.rol
+            };
+
+            this.storeAuthData(token, user);
+            
+            console.log('✅ Usuario registrado exitosamente:', user);
+
+            // Retornar en formato AuthResponse
+            return {
+              access_token: token,
+              user: user
+            } as AuthResponse;
+
+          } catch (e) {
+            console.error('❌ Error al decodificar el token:', e);
+            throw new Error('Token inválido recibido del servidor');
+          }
+        }),
+        catchError(this.handleError)
+      );
   }
   
   logout(): void {
@@ -134,49 +219,31 @@ export class AuthService {
     this.router.navigate(['/auth/login']);
   }
 
-  /**
-   * Obtener token almacenado
-   */
   getToken(): string | null {
     return localStorage.getItem(this.tokenKey);
   }
 
-  /**
-   * Verificar email (placeholder para cuando se implemente)
-   */
   verifyEmail(token: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/verify-email`, { token })
       .pipe(catchError(this.handleError));
   }
 
-  /**
-   * Solicitar recuperación de contraseña
-   */
   forgotPassword(email: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/forgot-password`, { email })
       .pipe(catchError(this.handleError));
   }
 
-  /**
-   * Resetear contraseña
-   */
   resetPassword(token: string, newPassword: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/reset-password`, { token, newPassword })
       .pipe(catchError(this.handleError));
   }
 
-  /**
-   * Almacenar datos de autenticación
-   */
   private storeAuthData(token: string, user: User): void {
     localStorage.setItem(this.tokenKey, token);
     localStorage.setItem(this.userKey, JSON.stringify(user));
     this.currentUserSubject.next(user);
   }
 
-  /**
-   * Obtener usuario almacenado
-   */
   private getStoredUser(): User | null {
     const userStr = localStorage.getItem(this.userKey);
     if (userStr) {
@@ -189,17 +256,12 @@ export class AuthService {
     return null;
   }
 
-  /**
-   * Manejo de errores HTTP
-   */
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Ha ocurrido un error desconocido';
     
     if (error.error instanceof ErrorEvent) {
-      // Error del lado del cliente
       errorMessage = `Error: ${error.error.message}`;
     } else {
-      // Error del lado del servidor
       if (error.error?.message) {
         errorMessage = error.error.message;
       } else if (error.status === 0) {

@@ -1,0 +1,344 @@
+<!-- src/app/features/profile/profile.component.html -->
+
+<div class="profile-container">
+  <!-- Header -->
+  <div class="profile-header">
+    <div class="header-content">
+      <button class="btn-back" (click)="goBack()" title="Volver">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div class="header-title">
+        <h1>Mi Perfil</h1>
+        <p>Gestiona tu información personal y configuración</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="profile-content">
+    <div class="container">
+      
+      <!-- Mensajes de éxito/error -->
+      @if (successMessage) {
+        <div class="alert alert-success">
+          <i class="bi bi-check-circle"></i>
+          {{ successMessage }}
+        </div>
+      }
+      
+      @if (errorMessage) {
+        <div class="alert alert-error">
+          <i class="bi bi-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+      }
+
+      <div class="profile-grid">
+        <!-- Card de Información del Usuario -->
+        <div class="profile-card user-info-card">
+          <div class="user-avatar-large">
+            {{ getUserInitials }}
+          </div>
+          <h2 class="user-name">{{ currentUser?.nombre }}</h2>
+          <p class="user-email">{{ currentUser?.correo }}</p>
+          <span class="user-role-badge">{{ getRoleLabel }}</span>
+          
+          <div class="user-stats">
+            <div class="stat-item">
+              <i class="bi bi-calendar-check"></i>
+              <div class="stat-info">
+                <span class="stat-label">Miembro desde</span>
+                <span class="stat-value">Enero 2024</span>
+              </div>
+            </div>
+            <div class="stat-item">
+              <i class="bi bi-shield-check"></i>
+              <div class="stat-info">
+                <span class="stat-label">Estado</span>
+                <span class="stat-value">Verificado</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario de Perfil -->
+        <div class="profile-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Información Personal</h3>
+              <p class="card-subtitle">Actualiza tu información de perfil</p>
+            </div>
+            
+            @if (!isEditingProfile) {
+              <button class="btn-edit" (click)="enableProfileEdit()">
+                <i class="bi bi-pencil"></i>
+                Editar
+              </button>
+            }
+          </div>
+
+          <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()">
+            <div class="form-grid">
+              <!-- Nombre completo -->
+              <div class="form-group">
+                <label for="nombre" class="form-label">
+                  Nombre completo
+                  <span class="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="nombre"
+                  formControlName="nombre"
+                  class="form-input"
+                  [class.error]="isFieldInvalid('profile', 'nombre')"
+                  placeholder="Ingresa tu nombre completo"
+                />
+                @if (isFieldInvalid('profile', 'nombre')) {
+                  <span class="error-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ getFieldError('profile', 'nombre') }}
+                  </span>
+                }
+              </div>
+
+              <!-- Email -->
+              <div class="form-group">
+                <label for="correo" class="form-label">
+                  Correo electrónico
+                  <span class="required">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="correo"
+                  formControlName="correo"
+                  class="form-input"
+                  [class.error]="isFieldInvalid('profile', 'correo')"
+                  placeholder="tu@email.com"
+                />
+                @if (isFieldInvalid('profile', 'correo')) {
+                  <span class="error-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ getFieldError('profile', 'correo') }}
+                  </span>
+                }
+              </div>
+
+              <!-- Teléfono -->
+              <div class="form-group">
+                <label for="telefono" class="form-label">Teléfono</label>
+                <input
+                  type="tel"
+                  id="telefono"
+                  formControlName="telefono"
+                  class="form-input"
+                  placeholder="+54 9 11 1234-5678"
+                />
+              </div>
+
+              <!-- Dirección -->
+              <div class="form-group full-width">
+                <label for="direccion" class="form-label">Dirección</label>
+                <input
+                  type="text"
+                  id="direccion"
+                  formControlName="direccion"
+                  class="form-input"
+                  placeholder="Tu dirección"
+                />
+              </div>
+            </div>
+
+            <!-- Botones de acción -->
+            @if (isEditingProfile) {
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="cancelProfileEdit()"
+                  [disabled]="isSavingProfile"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="isSavingProfile || profileForm.invalid"
+                >
+                  @if (isSavingProfile) {
+                    <i class="bi bi-arrow-repeat spin"></i>
+                    Guardando...
+                  } @else {
+                    <i class="bi bi-check"></i>
+                    Guardar cambios
+                  }
+                </button>
+              </div>
+            }
+          </form>
+        </div>
+
+        <!-- Cambio de Contraseña -->
+        <div class="profile-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Seguridad</h3>
+              <p class="card-subtitle">Gestiona tu contraseña y configuración de seguridad</p>
+            </div>
+          </div>
+
+          @if (!isChangingPassword) {
+            <button class="btn btn-outline" (click)="togglePasswordChange()">
+              <i class="bi bi-key"></i>
+              Cambiar contraseña
+            </button>
+          } @else {
+            <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+              <div class="form-grid">
+                <!-- Contraseña actual -->
+                <div class="form-group full-width">
+                  <label for="currentPassword" class="form-label">
+                    Contraseña actual
+                    <span class="required">*</span>
+                  </label>
+                  <div class="input-with-icon">
+                    <input
+                      [type]="showCurrentPassword ? 'text' : 'password'"
+                      id="currentPassword"
+                      formControlName="currentPassword"
+                      class="form-input"
+                      [class.error]="isFieldInvalid('password', 'currentPassword')"
+                      placeholder="Ingresa tu contraseña actual"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-password"
+                      (click)="togglePasswordVisibility('current')"
+                    >
+                      <i [class]="showCurrentPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                    </button>
+                  </div>
+                  @if (isFieldInvalid('password', 'currentPassword')) {
+                    <span class="error-message">
+                      <i class="bi bi-exclamation-circle"></i>
+                      {{ getFieldError('password', 'currentPassword') }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Nueva contraseña -->
+                <div class="form-group">
+                  <label for="newPassword" class="form-label">
+                    Nueva contraseña
+                    <span class="required">*</span>
+                  </label>
+                  <div class="input-with-icon">
+                    <input
+                      [type]="showNewPassword ? 'text' : 'password'"
+                      id="newPassword"
+                      formControlName="newPassword"
+                      class="form-input"
+                      [class.error]="isFieldInvalid('password', 'newPassword')"
+                      placeholder="Mínimo 6 caracteres"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-password"
+                      (click)="togglePasswordVisibility('new')"
+                    >
+                      <i [class]="showNewPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                    </button>
+                  </div>
+                  @if (isFieldInvalid('password', 'newPassword')) {
+                    <span class="error-message">
+                      <i class="bi bi-exclamation-circle"></i>
+                      {{ getFieldError('password', 'newPassword') }}
+                    </span>
+                  }
+                </div>
+
+                <!-- Confirmar contraseña -->
+                <div class="form-group">
+                  <label for="confirmPassword" class="form-label">
+                    Confirmar contraseña
+                    <span class="required">*</span>
+                  </label>
+                  <div class="input-with-icon">
+                    <input
+                      [type]="showConfirmPassword ? 'text' : 'password'"
+                      id="confirmPassword"
+                      formControlName="confirmPassword"
+                      class="form-input"
+                      [class.error]="isFieldInvalid('password', 'confirmPassword') || passwordMismatch"
+                      placeholder="Repite la nueva contraseña"
+                    />
+                    <button
+                      type="button"
+                      class="toggle-password"
+                      (click)="togglePasswordVisibility('confirm')"
+                    >
+                      <i [class]="showConfirmPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                    </button>
+                  </div>
+                  @if (isFieldInvalid('password', 'confirmPassword')) {
+                    <span class="error-message">
+                      <i class="bi bi-exclamation-circle"></i>
+                      {{ getFieldError('password', 'confirmPassword') }}
+                    </span>
+                  }
+                  @if (passwordMismatch) {
+                    <span class="error-message">
+                      <i class="bi bi-exclamation-circle"></i>
+                      Las contraseñas no coinciden
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <!-- Botones de acción -->
+              <div class="form-actions">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="togglePasswordChange()"
+                  [disabled]="isSavingPassword"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="isSavingPassword || passwordForm.invalid"
+                >
+                  @if (isSavingPassword) {
+                    <i class="bi bi-arrow-repeat spin"></i>
+                    Guardando...
+                  } @else {
+                    <i class="bi bi-check"></i>
+                    Actualizar contraseña
+                  }
+                </button>
+              </div>
+            </form>
+          }
+        </div>
+
+        <!-- Zona de Peligro -->
+        <div class="profile-card danger-zone">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title text-danger">Zona de Peligro</h3>
+              <p class="card-subtitle">Acciones irreversibles con tu cuenta</p>
+            </div>
+          </div>
+
+          <div class="danger-actions">
+            <button class="btn btn-danger" (click)="onLogout()">
+              <i class="bi bi-box-arrow-right"></i>
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

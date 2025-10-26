@@ -49,12 +49,13 @@ export interface ProductFilters {
 export interface ProductFormData {
   name: string;
   description: string;
-  price: number;
-  stock: number;
+  sku: string;
   brandId: string;
   lineId: string;
-  sku?: string;
+  price: number;
+  stock: number;
   images?: File[];
+  isActive?: boolean;
 }
 
 export interface PaginatedResponse<T> {
