@@ -15,14 +15,24 @@ export const routes: Routes = [
         path: 'dashboard',
         loadChildren: () => import('./features/dashboard/dashboard-routes').then(m => m.DashboardRoutes)
     },
+    // {
+    //     path: 'profile',
+    //     loadChildren: () => import('./features/profile/profile-routes').then(m => m.ProfileRoutes)
+    // },
     {
         path: 'products',
         loadChildren: () => import('./features/products/products.routes').then(m => m.ProductsRoutes)
     },
+    // {   path: 'suppliers',
+    //     loadChildren: () => import('./features/suppliers/suppliers-routes').then(m => m.SupplierRoutes)
 
+    // },
     // {
     //     path: 'access-denied',
     //     component: AccessDeniedComponent,
     //     data: { title: 'Acceso Denegado' }
+    // },
+    // {
+    //     path: '**', redirectTo: 'dashboard'
     // }
 ];
