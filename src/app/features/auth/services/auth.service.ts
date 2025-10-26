@@ -14,6 +14,7 @@ import {
   UserRole
 } from '../models/user.model';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { environment } from '../../../environments/environments';
 
 interface TokenPayload {
   id: number;
@@ -33,8 +34,9 @@ interface BackendLoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/auth';
-  
+
+  private apiUrl = environment.vercelUrl;
+  //private apiUrl = 'http://localhost:3000'; 
   private readonly isMockMode = false;
 
   private currentUserSubject: BehaviorSubject<User | null>;
@@ -91,7 +93,7 @@ export class AuthService {
     };
 
     // Petición al backend real
-    return this.http.post<BackendLoginResponse>(`${this.apiUrl}/login`, body)
+    return this.http.post<BackendLoginResponse>(`${this.apiUrl}/auth/login`, body)
       .pipe(
         map(res => {
           const token = res.token;
@@ -160,7 +162,6 @@ export class AuthService {
       );
     }
 
-
     const backenRegisterData = {
       nombre: data.fullName,
       correo: data.email,
@@ -172,7 +173,7 @@ export class AuthService {
 
     console.log('Datos transformados para el backend:', backenRegisterData);
     
-    return this.http.post<BackendLoginResponse>(`${this.apiUrl}/register`, backenRegisterData)
+    return this.http.post<BackendLoginResponse>(`${this.apiUrl}/auth/register`, backenRegisterData)
       .pipe(
         map(res => {
           const token = res.token;
