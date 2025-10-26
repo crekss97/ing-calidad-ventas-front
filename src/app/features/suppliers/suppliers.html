@@ -1,0 +1,432 @@
+<!-- src/app/features/suppliers/suppliers.component.html -->
+
+<div class="suppliers-container">
+  <!-- Header -->
+  <div class="suppliers-header">
+    <div class="header-content">
+      <button class="btn-back" (click)="goBack()" title="Volver al Dashboard">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div class="header-title">
+        <h1>Gestión de Proveedores</h1>
+        <p>Administra tu red de proveedores y fuentes de abastecimiento</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="suppliers-content">
+    <div class="container">
+      
+      <!-- Mensajes de éxito/error -->
+      @if (successMessage) {
+        <div class="alert alert-success">
+          <i class="bi bi-check-circle"></i>
+          {{ successMessage }}
+        </div>
+      }
+      
+      @if (errorMessage) {
+        <div class="alert alert-error">
+          <i class="bi bi-exclamation-circle"></i>
+          {{ errorMessage }}
+        </div>
+      }
+
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bi bi-truck"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ totalSuppliers }}</span>
+            <span class="stat-label">Total Proveedores</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon active">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ activeSuppliers }}</span>
+            <span class="stat-label">Activos</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="bi bi-search"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ filteredSuppliers.length }}</span>
+            <span class="stat-label">Resultados</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input
+            type="text"
+            placeholder="Buscar por nombre, razón social, CUIT o email..."
+            (input)="onSearch($event)"
+            [value]="searchTerm"
+          />
+        </div>
+
+        <button class="btn btn-primary" (click)="openCreateForm()">
+          <i class="bi bi-plus-circle"></i>
+          Nuevo Proveedor
+        </button>
+      </div>
+
+      <!-- Tabla de Proveedores -->
+      <div class="suppliers-table-container">
+        @if (isLoading) {
+          <div class="loading-state">
+            <i class="bi bi-arrow-repeat spin"></i>
+            <p>Cargando proveedores...</p>
+          </div>
+        } @else if (!hasSuppliers) {
+          <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h3>No se encontraron proveedores</h3>
+            <p>
+              @if (searchTerm) {
+                No hay proveedores que coincidan con "{{ searchTerm }}"
+              } @else {
+                Comienza agregando tu primer proveedor
+              }
+            </p>
+            @if (!searchTerm) {
+              <button class="btn btn-primary" (click)="openCreateForm()">
+                <i class="bi bi-plus-circle"></i>
+                Agregar Proveedor
+              </button>
+            }
+          </div>
+        } @else {
+          <div class="table-wrapper">
+            <table class="suppliers-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Razón Social</th>
+                  <th>CUIT/RUT</th>
+                  <th>Contacto</th>
+                  <th>Estado</th>
+                  <th class="text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (supplier of filteredSuppliers; track supplier.id) {
+                  <tr>
+                    <td>
+                      <div class="supplier-name">
+                        <div class="supplier-avatar">
+                          {{ supplier.nombre.charAt(0).toUpperCase() }}
+                        </div>
+                        <div>
+                          <div class="name">{{ supplier.nombre }}</div>
+                          @if (supplier.sitioWeb) {
+                            <a [href]="supplier.sitioWeb" target="_blank" class="website">
+                              <i class="bi bi-globe"></i>
+                              Sitio web
+                            </a>
+                          }
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="text-muted">{{ supplier.razonSocial }}</span>
+                    </td>
+                    <td>
+                      <span class="cuit">{{ supplier.cuitRut }}</span>
+                    </td>
+                    <td>
+                      <div class="contact-info">
+                        <div class="contact-item">
+                          <i class="bi bi-envelope"></i>
+                          <a [href]="'mailto:' + supplier.email">{{ supplier.email }}</a>
+                        </div>
+                        <div class="contact-item">
+                          <i class="bi bi-telephone"></i>
+                          <span>{{ formatPhone(supplier.telefono) }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="status-badge" [class.active]="supplier.activo">
+                        @if (supplier.activo) {
+                          <i class="bi bi-check-circle"></i>
+                          Activo
+                        } @else {
+                          <i class="bi bi-x-circle"></i>
+                          Inactivo
+                        }
+                      </span>
+                    </td>
+                    <td>
+                      <div class="action-buttons">
+                        <button
+                          class="btn-icon"
+                          (click)="viewSupplierDetails(supplier)"
+                          title="Ver detalles"
+                        >
+                          <i class="bi bi-eye"></i>
+                        </button>
+                        <button
+                          class="btn-icon edit"
+                          (click)="openEditForm(supplier)"
+                          title="Editar"
+                        >
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button
+                          class="btn-icon delete"
+                          (click)="openDeleteModal(supplier)"
+                          title="Eliminar"
+                        >
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Formulario -->
+  @if (isFormOpen) {
+    <div class="modal-overlay" (click)="closeForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ formTitle }}</h2>
+          <button class="btn-close" (click)="closeForm()">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+
+        <form [formGroup]="supplierForm" (ngSubmit)="onSubmit()">
+          <div class="modal-body">
+            <div class="form-grid">
+              <!-- Nombre -->
+              <div class="form-group">
+                <label for="nombre" class="form-label">
+                  Nombre Comercial
+                  <span class="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="nombre"
+                  formControlName="nombre"
+                  class="form-input"
+                  [class.error]="isFieldInvalid('nombre')"
+                  placeholder="Ej: Distribuidora Central"
+                />
+                @if (isFieldInvalid('nombre')) {
+                  <span class="error-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ getFieldError('nombre') }}
+                  </span>
+                }
+              </div>
+
+              <!-- Razón Social -->
+              <div class="form-group">
+                <label for="razonSocial" class="form-label">
+                  Razón Social
+                  <span class="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="razonSocial"
+                  formControlName="razonSocial"
+                  class="form-input"
+                  [class.error]="isFieldInvalid('razonSocial')"
+                  placeholder="Ej: Distribuidora Central S.A."
+                />
+                @if (isFieldInvalid('razonSocial')) {
+                  <span class="error-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ getFieldError('razonSocial') }}
+                  </span>
+                }
+              </div>
+
+              <!-- CUIT/RUT -->
+              <div class="form-group">
+                <label for="cuitRut" class="form-label">
+                  CUIT/RUT
+                  <span class="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="cuitRut"
+                  formControlName="cuitRut"
+                  class="form-input"
+                  [class.error]="isFieldInvalid('cuitRut')"
+                  placeholder="Ej: 30-12345678-9"
+                />
+                @if (isFieldInvalid('cuitRut')) {
+                  <span class="error-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ getFieldError('cuitRut') }}
+                  </span>
+                }
+              </div>
+
+              <!-- Teléfono -->
+              <div class="form-group">
+                <label for="telefono" class="form-label">
+                  Teléfono
+                  <span class="required">*</span>
+                </label>
+                <input
+                  type="tel"
+                  id="telefono"
+                  formControlName="telefono"
+                  class="form-input"
+                  [class.error]="isFieldInvalid('telefono')"
+                  placeholder="Ej: +54 11 4567-8900"
+                />
+                @if (isFieldInvalid('telefono')) {
+                  <span class="error-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ getFieldError('telefono') }}
+                  </span>
+                }
+              </div>
+
+              <!-- Email -->
+              <div class="form-group full-width">
+                <label for="email" class="form-label">
+                  Email
+                  <span class="required">*</span>
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  formControlName="email"
+                  class="form-input"
+                  [class.error]="isFieldInvalid('email')"
+                  placeholder="contacto@proveedor.com"
+                />
+                @if (isFieldInvalid('email')) {
+                  <span class="error-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ getFieldError('email') }}
+                  </span>
+                }
+              </div>
+
+              <!-- Dirección -->
+              <div class="form-group full-width">
+                <label for="direccion" class="form-label">
+                  Dirección
+                  <span class="required">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="direccion"
+                  formControlName="direccion"
+                  class="form-input"
+                  [class.error]="isFieldInvalid('direccion')"
+                  placeholder="Dirección completa"
+                />
+                @if (isFieldInvalid('direccion')) {
+                  <span class="error-message">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ getFieldError('direccion') }}
+                  </span>
+                }
+              </div>
+
+              <!-- Sitio Web (opcional) -->
+              <div class="form-group full-width">
+                <label for="sitioWeb" class="form-label">Sitio Web</label>
+                <input
+                  type="url"
+                  id="sitioWeb"
+                  formControlName="sitioWeb"
+                  class="form-input"
+                  placeholder="https://www.proveedor.com"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="closeForm()"
+              [disabled]="isSaving"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="isSaving || supplierForm.invalid"
+            >
+              @if (isSaving) {
+                <i class="bi bi-arrow-repeat spin"></i>
+                Guardando...
+              } @else {
+                <i class="bi bi-check"></i>
+                {{ isEditMode ? 'Actualizar' : 'Crear' }} Proveedor
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Confirmación de Eliminación -->
+  @if (showDeleteModal && supplierToDelete) {
+    <div class="modal-overlay" (click)="closeDeleteModal()">
+      <div class="modal-content modal-confirm" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Confirmar Eliminación</h2>
+          <button class="btn-close" (click)="closeDeleteModal()">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="confirm-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+          <p>
+            ¿Estás seguro de que deseas eliminar el proveedor
+            <strong>{{ supplierToDelete.nombre }}</strong>?
+          </p>
+          <p class="warning-text">
+            Esta acción no se puede deshacer.
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeDeleteModal()">
+            Cancelar
+          </button>
+          <button class="btn btn-danger" (click)="confirmDelete()">
+            <i class="bi bi-trash"></i>
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
