@@ -90,8 +90,12 @@ enum Ambito {
   PRODUCTO = "PRODUCTO",
   MARCA = "MARCA"
 }
+export interface LoginDto{
+  correo: string;
+  contraseña: string;
+}
 
-export interface CreateUsuarioDTO{
+export interface CreateUsuarioDto{
   nombre: string;
   correo: string;
   dirEnvio: string;

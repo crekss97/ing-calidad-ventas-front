@@ -1,8 +1,6 @@
 import { Routes } from '@angular/router';
 import { ProductsListComponent } from '../products/models/components/products-list/products-list-component';
 import { authGuard } from '../../shared/guards/auth.guard';
-import { roleGuard } from '../../shared/guards/role.guard';
-import { UserRole } from '../auth/models/user.model';
 
 export const ProductsRoutes: Routes = [
   {

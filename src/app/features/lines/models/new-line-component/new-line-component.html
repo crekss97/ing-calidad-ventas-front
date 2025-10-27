@@ -28,12 +28,12 @@
     
               <div class="mb-3">
                 <label class="form-label">Marca</label>
-                <select class="form-select" formControlName="brandId">
-                  <option value="">Seleccionar marca</option>
-                  @for (brand of brands; track brand.id) {
-                    <option [value]="brand.id">{{ brand.name }}</option>
-                  }
-                </select>
+                <select class="form-select" formControlName="marcaId">
+                    <option value="">Seleccionar marca</option>
+                    @for (brand of brands(); track brand.id) {
+                      <option [value]="brand.id">{{ brand.nombre }}</option>
+                    }
+                  </select>
                 @if(form.get('brandId')?.touched && form.get('brandId')?.invalid){
                     <div class="text-danger small">
                       La marca es requerida.
@@ -56,7 +56,7 @@
     
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" (click)="close()">Cancelar</button>
-            <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+            <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="form.invalid">
               {{ mode() === 'create' ? 'Crear' : 'Guardar' }}
             </button>
           </div>

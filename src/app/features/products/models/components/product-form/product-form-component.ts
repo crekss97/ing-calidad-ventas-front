@@ -4,7 +4,7 @@ import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ProductsService } from '../../services/products.service';
-import { Product, ProductFormData } from '../../../models/product.models';
+import { CreateProductoDto, Linea, Marca, Producto, Proveedor } from '../../../../../models/global.models';
 
 interface QuickCreateModal {
   type: 'brand' | 'line' | null;
@@ -26,11 +26,11 @@ export class ProductFormComponent {
   // Signals
   isOpen = signal(false);
   isSubmitting = signal(false);
-  selectedFiles = signal<File[]>([]);
-  imagePreviews = signal<string[]>([]);
   editMode = signal(false);
-  currentProductId = signal<string | null>(null);
-
+  currentProductId = signal<number | null>(null);
+  lines = signal<Linea[]>([]);
+  proveedores = signal<Proveedor[]>([]);
+  brands = signal<Marca[]>([]);
   // Quick create modal
   quickCreateModal = signal<QuickCreateModal>({
     type: null,
@@ -38,11 +38,6 @@ export class ProductFormComponent {
     name: '',
     description: '',
   });
-
-  // Data from service
-  brands = this.productsService.brands;
-  lines = this.productsService.lines;
-  loading = this.productsService.loading;
 
   // Form
   productForm: FormGroup;
@@ -62,7 +57,7 @@ export class ProductFormComponent {
   availableLines = computed(() => {
     const brandId = this.productForm?.get('brandId')?.value;
     if (!brandId) return [];
-    return this.lines().filter((line) => line.brandId === brandId);
+    return this.lines().filter((line: Linea) => line.marcaId === brandId);
   });
 
   // Calcular margen de ganancia
@@ -86,6 +81,11 @@ export class ProductFormComponent {
         });
       }
     });
+    // Cargar proveedores
+    this.productsService.getProviders().subscribe({
+      next: (res: any) => this.proveedores.set(Array.isArray(res) ? res : (res?.data ?? res)),
+      error: () => this.proveedores.set([]),
+    });
   }
 
   private initForm(): FormGroup {
@@ -93,7 +93,8 @@ export class ProductFormComponent {
       name: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', Validators.required],
       sku: ['', [Validators.required, Validators.pattern(/^[A-Z0-9-]+$/)]],
-      brandId: ['', Validators.required],
+  brandId: ['', Validators.required],
+  proveedorId: ['', Validators.required],
       lineId: ['', Validators.required],
       price: [0, [Validators.required, Validators.min(0)]],
       cost: [0, [Validators.min(0)]],
@@ -104,7 +105,7 @@ export class ProductFormComponent {
   }
 
   // Modal controls
-  open(product?: Product): void {
+  open(product?: Producto): void {
     this.isOpen.set(true);
     document.body.style.overflow = 'hidden';
 
@@ -122,7 +123,6 @@ export class ProductFormComponent {
         cost: 0,
         stock: 0,
       });
-      this.removeAllImages();
     }
   }
 
@@ -138,73 +138,18 @@ export class ProductFormComponent {
     this.productForm.reset();
     this.editMode.set(false);
     this.currentProductId.set(null);
-    this.removeAllImages();
   }
 
-  private loadProductData(product: Product): void {
+  private loadProductData(product: Producto): void {
     this.productForm.patchValue({
-      name: product.name,
-      description: product.description,
-      sku: product.sku,
-      brandId: product.brandId,
-      lineId: product.lineId,
-      price: product.price,
-      cost: 0, // El backend no devuelve cost
+      name: product.nombre,
+      description: product.descripcion,
+      proveedorId: product.proveedorId,
+      lineId: product.lineaId,
+      price: product.precio,
       stock: product.stock,
       minStock: 10,
-      isActive: product.isActive,
     });
-
-    if (product.images && product.images.length > 0) {
-      this.imagePreviews.set(product.images);
-    }
-  }
-
-  // Image handling
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      const newFiles = Array.from(input.files);
-
-      // Validar que sean imágenes
-      const validFiles = newFiles.filter((file) => file.type.startsWith('image/'));
-
-      if (validFiles.length !== newFiles.length) {
-        alert('Algunos archivos no son imágenes válidas');
-      }
-
-      // Validar tamaño (max 5MB por imagen)
-      const oversizedFiles = validFiles.filter((file) => file.size > 5 * 1024 * 1024);
-      if (oversizedFiles.length > 0) {
-        alert('Algunas imágenes superan los 5MB');
-        return;
-      }
-
-      // Agregar a la lista de archivos
-      this.selectedFiles.update((files) => [...files, ...validFiles]);
-
-      // Crear previews
-      validFiles.forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (e: ProgressEvent<FileReader>) => {
-          this.imagePreviews.update((previews) => [...previews, e.target?.result as string]);
-        };
-        reader.readAsDataURL(file);
-      });
-
-      // Limpiar input
-      input.value = '';
-    }
-  }
-
-  removeImage(index: number): void {
-    this.imagePreviews.update((previews) => previews.filter((_, i) => i !== index));
-    this.selectedFiles.update((files) => files.filter((_, i) => i !== index));
-  }
-
-  removeAllImages(): void {
-    this.selectedFiles.set([]);
-    this.imagePreviews.set([]);
   }
 
   // Quick create modals
@@ -230,22 +175,8 @@ export class ProductFormComponent {
     const modal = this.quickCreateModal();
     if (!modal.name.trim()) return;
 
-    if (modal.type === 'brand') {
-      this.productsService
-        .createBrand({
-          name: modal.name,
-          description: modal.description,
-        })
-        .subscribe({
-          next: (brand) => {
-            this.productForm.patchValue({ brandId: brand.id });
-            this.closeQuickCreateModal();
-          },
-          error: (error) => {
-            alert('Error al crear marca: ' + error.message);
-          },
-        });
-    } else if (modal.type === 'line') {
+    
+    if (modal.type === 'line') {
       const brandId = this.productForm.get('brandId')?.value;
       if (!brandId) {
         alert('Primero debes seleccionar una marca');
@@ -254,9 +185,9 @@ export class ProductFormComponent {
 
       this.productsService
         .createLine({
-          name: modal.name,
-          description: modal.description,
-          brandId,
+          nombre: modal.name,
+          descripcion: modal.description,
+          marcaId: brandId,
         })
         .subscribe({
           next: (line) => {
@@ -284,15 +215,14 @@ export class ProductFormComponent {
     this.isSubmitting.set(true);
 
     const formValue = this.productForm.value;
-    const productData: ProductFormData = {
-      name: formValue.name,
-      description: formValue.description,
-      sku: formValue.sku,
-      brandId: formValue.brandId,
-      lineId: formValue.lineId,
-      price: formValue.price,
+    const productData: CreateProductoDto = {
+      nombre: formValue.name,
+      descripcion: formValue.description,
+      lineaId: Number(formValue.lineId),
+      precio: formValue.price,
       stock: formValue.stock,
-      images: this.selectedFiles(),
+      estadoId: 1,
+      proveedorId: Number(formValue.proveedorId)
     };
 
     if (this.editMode() && this.currentProductId()) {
@@ -378,12 +308,12 @@ export class ProductFormComponent {
   }
 
   // Obtener nombre de marca
-  getBrandName(brandId: string): string {
-    return this.brands().find((b) => b.id === brandId)?.name || '';
+  getBrandName(brandId: number): string {
+    return this.brands().find((b: Marca) => b.id === brandId)?.nombre || '';
   }
 
   // Obtener nombre de línea
-  getLineName(lineId: string): string {
-    return this.lines().find((l) => l.id === lineId)?.name || '';
+  getLineName(lineId: number): string {
+    return this.lines().find((l: Linea) => l.id === lineId)?.nombre || '';
   }
 }

@@ -25,7 +25,7 @@
     <div class="stat-card">
       <div class="stat-icon"><i class="bi bi-diagram-3"></i></div>
       <div class="stat-content">
-        <div class="stat-value">{{ totalLines() }}</div>
+  <div class="stat-value">{{ totalLines() }}</div>
         <div class="stat-label">Total Líneas</div>
       </div>
     </div>
@@ -41,7 +41,7 @@
     <div class="stat-card">
       <div class="stat-icon"><i class="bi bi-tags"></i></div>
       <div class="stat-content">
-        <div class="stat-value">{{ brands().length }}</div>
+  <div class="stat-value">{{ brands().length }}</div>
         <div class="stat-label">Marcas</div>
       </div>
     </div>
@@ -96,7 +96,7 @@
     @if (showFilters()) {
     <div class="filters-content">
       <div class="filter-group">
-        <label class="filter-label">Marca</label>
+          <label class="filter-label">Marca</label>
         <select
           class="filter-select"
           [value]="selectedBrand()"
@@ -104,7 +104,7 @@
         >
           <option value="">Todas las marcas</option>
           @for (brand of brands(); track brand.id) {
-          <option [value]="brand.id">{{ brand.name }}</option>
+          <option [value]="brand.id">{{ brand.nombre }}</option>
           }
         </select>
       </div>
@@ -159,23 +159,23 @@
     @for (line of filteredLines(); track line.id) {
     <div class="line-card">
       <div class="line-image">
-        @if (line.image) {
-        <img [src]="line.image" [alt]="line.name" />
+        @if (hasImage(line)) {
+        <img [src]="getImage(line)" [alt]="line.nombre" />
         } @else {
         <div class="placeholder-image"><i class="bi bi-image"></i></div>
         }
       </div>
 
-      <div class="line-info">
-        <h3 class="line-name">{{ line.name }}</h3>
-        <p class="line-description">{{ line.description }}</p>
-        <span class="line-brand">{{ getBrandName(line.brandId) }}</span>
+  <div class="line-info">
+  <h3 class="line-name">{{ line.nombre }}</h3>
+  <p class="line-description">{{ line.descripcion }}</p>
+  <span class="line-brand">{{ getBrandName(line.marcaId) }}</span>
         <div class="line-footer">
           <span
             class="status-badge"
-            [class.active]="line.isActive"
-            [class.inactive]="!line.isActive"
-            >{{ line.isActive ? 'Activa' : 'Inactiva' }}</span
+            [class.active]="isLineActive(line)"
+            [class.inactive]="!isLineActive(line)"
+            >{{ isLineActive(line) ? 'Activa' : 'Inactiva' }}</span
           >
           <div class="line-actions">
             <a routerLink="['/lines', line.id]" class="btn-icon" title="Ver detalles">
@@ -210,15 +210,15 @@
     <tbody>
       @for (line of filteredLines(); track line.id) {
       <tr>
-        <td>{{ line.name }}</td>
-        <td>{{ getBrandName(line.brandId) }}</td>
-        <td>{{ line.description }}</td>
+  <td>{{ line.nombre }}</td>
+  <td>{{ getBrandName(line.marcaId) }}</td>
+  <td>{{ line.descripcion }}</td>
         <td>
           <span
             class="status-badge"
-            [class.active]="line.isActive"
-            [class.inactive]="!line.isActive"
-            >{{ line.isActive ? 'Activa' : 'Inactiva' }}</span
+            [class.active]="isLineActive(line)"
+            [class.inactive]="!isLineActive(line)"
+            >{{ isLineActive(line) ? 'Activa' : 'Inactiva' }}</span
           >
         </td>
         <td>

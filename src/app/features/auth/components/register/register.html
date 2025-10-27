@@ -25,62 +25,82 @@
 
     <!-- Registration Form -->
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-      <!-- Full Name -->
+      <!-- Nombre -->
       <div class="mb-3">
-        <label for="fullName" class="form-label">
+        <label for="nombre" class="form-label">
           Nombre completo <span class="text-danger">*</span>
         </label>
         <input
           type="text"
           class="form-control"
-          id="fullName"
-          formControlName="fullName"
+          id="nombre"
+          formControlName="nombre"
           placeholder="Juan Pérez"
-          [class.is-invalid]="isFieldInvalid('fullName')"
+          [class.is-invalid]="isFieldInvalid('nombre')"
         />
-        @if (isFieldInvalid('fullName')) {
+        @if (isFieldInvalid('nombre')) {
         <div class="invalid-feedback">
-          {{ getFieldError('fullName') }}
+          {{ getFieldError('nombre') }}
         </div>
         }
       </div>
 
       <!-- Email -->
       <div class="mb-3">
-        <label for="email" class="form-label">
+        <label for="correo" class="form-label">
           Correo electrónico <span class="text-danger">*</span>
         </label>
         <input
           type="email"
           class="form-control"
-          id="email"
-          formControlName="email"
+          id="correo"
+          formControlName="correo"
           placeholder="tu@empresa.com"
-          [class.is-invalid]="isFieldInvalid('email')"
+          [class.is-invalid]="isFieldInvalid('correo')"
         />
-        @if (isFieldInvalid('email')) {
+        @if (isFieldInvalid('correo')) {
         <div class="invalid-feedback">
-          {{ getFieldError('email') }}
+          {{ getFieldError('correo') }}
         </div>
         }
       </div>
 
-      <!-- Company (Optional) -->
+      <!-- Dirección de envío -->
       <div class="mb-3">
-        <label for="company" class="form-label">
-          Empresa <span class="text-muted">(opcional)</span>
+        <label for="dirEnvio" class="form-label">
+          Dirección de envío <span class="text-danger">*</span>
         </label>
         <input
           type="text"
           class="form-control"
-          id="company"
-          formControlName="company"
-          placeholder="Tu Empresa S.A."
-          [class.is-invalid]="isFieldInvalid('company')"
+          id="dirEnvio"
+          formControlName="dirEnvio"
+          placeholder="Calle Falsa 123"
+          [class.is-invalid]="isFieldInvalid('dirEnvio')"
         />
-        @if (isFieldInvalid('company')) {
+        @if (isFieldInvalid('dirEnvio')) {
         <div class="invalid-feedback">
-          {{ getFieldError('company') }}
+          {{ getFieldError('dirEnvio') }}
+        </div>
+        }
+      </div>
+
+      <!-- Teléfono -->
+      <div class="mb-3">
+        <label for="telefono" class="form-label">
+          Teléfono <span class="text-danger">*</span>
+        </label>
+        <input
+          type="text"
+          class="form-control"
+          id="telefono"
+          formControlName="telefono"
+          placeholder="(011) 1234-5678"
+          [class.is-invalid]="isFieldInvalid('telefono')"
+        />
+        @if (isFieldInvalid('telefono')) {
+        <div class="invalid-feedback">
+          {{ getFieldError('telefono') }}
         </div>
         }
       </div>
@@ -94,10 +114,10 @@
           <input
             [type]="showPassword() ? 'text' : 'password'"
             class="form-control"
-            id="password"
-            formControlName="password"
+            id="contraseña"
+            formControlName="contraseña"
             placeholder="••••••••"
-            [class.is-invalid]="isFieldInvalid('password')"
+            [class.is-invalid]="isFieldInvalid('contraseña')"
           />
           <button
             class="btn btn-outline-secondary"
@@ -107,15 +127,15 @@
           >
             <i [class]="showPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
           </button>
-          @if (isFieldInvalid('password')) {
+          @if (isFieldInvalid('contraseña')) {
           <div class="invalid-feedback">
-            {{ getFieldError('password') }}
+            {{ getFieldError('contraseña') }}
           </div>
           }
         </div>
 
         <!-- Password Strength Indicator -->
-         @if(registerForm.get('password')?.value){
+         @if(registerForm.get('contraseña')?.value){
         <div class="mt-2">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <small class="text-muted">Seguridad de la contraseña</small>
@@ -145,7 +165,7 @@
         <label for="confirmPassword" class="form-label">
           Confirmar contraseña <span class="text-danger">*</span>
         </label>
-        <div class="input-group">
+          <div class="input-group">
           <input
             [type]="showConfirmPassword() ? 'text' : 'password'"
             class="form-control"

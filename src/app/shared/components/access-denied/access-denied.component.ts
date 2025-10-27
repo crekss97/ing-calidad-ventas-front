@@ -3,7 +3,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth.service';
-import { User } from '../../../features/auth/models/user.model';
+import { Usuario } from '../../../models/global.models';
 
 @Component({
   selector: 'app-access-denied',
@@ -14,7 +14,7 @@ import { User } from '../../../features/auth/models/user.model';
 })
 
 export class AccessDeniedComponent {
-  currentUser = signal<User | null>(null);
+  currentUser = signal<Usuario | null>(null);
 
   private readonly _authService = inject(AuthService);
   private readonly _router= inject(Router)

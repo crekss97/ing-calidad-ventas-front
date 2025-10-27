@@ -14,39 +14,6 @@
     <!-- Modal Body with Scroll -->
     <div class="modal-body">
       <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="product-form">
-        <!-- Sección de Imágenes -->
-        <div class="form-section">
-          <h3>Imágenes del Producto</h3>
-
-          @if (imagePreviews().length > 0) {
-          <div class="images-grid">
-            @for (preview of imagePreviews(); track $index) {
-            <div class="image-preview-item">
-              <img [src]="preview" alt="Preview {{ $index + 1 }}" />
-              <button type="button" class="btn-remove-image" (click)="removeImage($index)">
-                <i class="bi bi-x-lg"></i>
-              </button>
-            </div>
-            }
-          </div>
-          }
-
-          <div class="upload-area">
-            <input
-              type="file"
-              id="imageInput"
-              accept="image/*"
-              multiple
-              (change)="onFileSelected($event)"
-              hidden
-            />
-            <label for="imageInput" class="upload-label">
-              <i class="bi bi-cloud-upload"></i>
-              <span>Subir imágenes</span>
-              <small>JPG, PNG, GIF - Max 5MB por imagen</small>
-            </label>
-          </div>
-        </div>
 
         <!-- Información Básica -->
         <div class="form-section">
@@ -114,7 +81,7 @@
                 >
                   <option value="">Seleccionar marca</option>
                   @for (brand of brands(); track brand.id) {
-                  <option [value]="brand.id">{{ brand.name }}</option>
+                  <option [value]="brand.id">{{ brand.nombre }}</option>
                   }
                 </select>
                 <button
@@ -141,7 +108,7 @@
                 >
                   <option value="">Seleccionar línea</option>
                   @for (line of availableLines(); track line.id) {
-                  <option [value]="line.id">{{ line.name }}</option>
+                  <option [value]="line.id">{{ line.nombre }}</option>
                   }
                 </select>
                 <button
@@ -158,6 +125,19 @@
               <span class="error-message">{{ getErrorMessage('lineId') }}</span>
               } @else if (!productForm.get('brandId')?.value) {
               <small class="info-text">Primero selecciona una marca</small>
+              }
+            </div>
+            
+            <div class="form-group">
+              <label for="proveedorId">Proveedor *</label>
+              <select id="proveedorId" formControlName="proveedorId" [class.invalid]="isFieldInvalid('proveedorId')">
+                <option value="">Seleccionar proveedor</option>
+                @for (prov of proveedores(); track prov.id) {
+                <option [value]="prov.id">{{ prov.nombre }}</option>
+                }
+              </select>
+              @if (isFieldInvalid('proveedorId')) {
+              <span class="error-message">{{ getErrorMessage('proveedorId') }}</span>
               }
             </div>
           </div>

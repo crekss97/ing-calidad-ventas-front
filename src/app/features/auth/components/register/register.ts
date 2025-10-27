@@ -5,9 +5,9 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CustomValidators } from '../../../../shared/validators/custom-validators';
-import { RegisterRequest, ApiError } from '../../models/user.model';
 import { AuthLayout } from '../../../../shared/layouts/auth-layout/auth-layout';
 import { finalize } from 'rxjs';
+import { CreateUsuarioDto } from '../../../../models/global.models';
 
 @Component({
   selector: 'app-register',
@@ -41,19 +41,24 @@ export class RegisterComponent implements OnInit {
 
   private initializeForm(): void {
     this.registerForm = this.fb.group({
-      fullName: ['', [
+      nombre: ['', [
         Validators.required,
         Validators.minLength(3),
         Validators.maxLength(100)
       ]],
-      email: ['', [
+      correo: ['', [
         Validators.required,
         CustomValidators.email()
       ]],
-      company: ['', [
+      dirEnvio: ['', [
+        Validators.required,
         Validators.maxLength(100)
       ]],
-      password: ['', [
+      telefono: ['', [
+        Validators.required,
+        Validators.maxLength(100)
+      ]],
+      contraseña: ['', [
         Validators.required,
         CustomValidators.strongPassword()
       ]],
@@ -64,12 +69,12 @@ export class RegisterComponent implements OnInit {
         Validators.requiredTrue
       ]]
     }, {
-      validators: CustomValidators.matchFields('password', 'confirmPassword')
+      validators: CustomValidators.matchFields('contraseña', 'confirmPassword')
     });
   }
 
   private setupPasswordStrengthCheck(): void {
-    this.registerForm.get('password')?.valueChanges.subscribe(password => {
+    this.registerForm.get('contraseña')?.valueChanges.subscribe(password => {
       this.passwordStrength.set(this.calculatePasswordStrength(password));
     });
   }
@@ -151,11 +156,13 @@ export class RegisterComponent implements OnInit {
 
   private getRequiredMessage(fieldName: string): string {
     const messages: { [key: string]: string } = {
-      fullName: 'El nombre es obligatorio',
-      email: 'El email es obligatorio',
-      password: 'La contraseña es obligatoria',
+      nombre: 'El nombre es obligatorio',
+      correo: 'El email es obligatorio',
+      contraseña: 'La contraseña es obligatoria',
       confirmPassword: 'Confirma tu contraseña',
-      acceptTerms: 'Debes aceptar los términos'
+      acceptTerms: 'Debes aceptar los términos',
+      dirEnvio: 'La dirección de envío es obligatoria',
+      telefono: 'El teléfono es obligatorio'
     };
     return messages[fieldName] || 'Este campo es obligatorio';
   }
@@ -169,15 +176,27 @@ export class RegisterComponent implements OnInit {
     this.isLoading.set(true)
     this.errorMessage.set('');
 
-    const registerData: RegisterRequest = this.registerForm.value;
-    this.authService.register(registerData)
+    // Construir payload con la forma que el backend espera (CreateUsuarioDto)
+    const fv = this.registerForm.value;
+    const payload = {
+      nombre: fv.nombre,
+      correo: fv.correo,
+      dirEnvio: fv.dirEnvio,
+      telefono: fv.telefono,
+      contraseña: fv.contraseña,
+      // incluimos confirmPassword para que AuthService pueda eliminarlo antes de enviar
+      confirmPassword: fv.confirmPassword,
+      acceptTerms: fv.acceptTerms
+    };
+
+    this.authService.register(payload as any)
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (response) => {
           console.log('Registro exitoso:', response);
           this.router.navigate(['/dashboard']);
         },
-        error: (error: ApiError) => {
+        error: (error: any) => {
           console.error('Error en registro:', error);
           this.errorMessage.set(error.message || 'Error al crear la cuenta');
         }

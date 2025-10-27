@@ -1,10 +1,11 @@
 import { Component, computed, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { LineService } from '../../services/line.service';
-import { Line } from '../../../../products/models/product.models';
+import { Linea, Marca } from '../../../../../models/global.models';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 import { Location } from '@angular/common';
 import { NewLineComponent } from '../../new-line-component/new-line-component';
+import { ProductsService } from '../../../../products/models/services/products.service';
 @Component({
   selector: 'app-line-list-component',
   imports: [ReactiveFormsModule, NewLineComponent],
@@ -15,6 +16,7 @@ export class LineListComponent implements OnInit{
   private lineService = inject(LineService);
   @ViewChild('lineFormModal') lineFormModal?: NewLineComponent;
   private location = inject(Location);
+  private productsService = inject(ProductsService);
 
   // --- Filtros y controles
   searchControl = new FormControl('');
@@ -22,11 +24,11 @@ export class LineListComponent implements OnInit{
   viewMode = signal<'grid' | 'list'>('grid');
   showFilters = signal(false);
 
-  // --- Datos
-  lines = this.lineService.lines;
-  brands = this.lineService.brands;
-  loading = this.lineService.loading;
-  error = this.lineService.error;
+  // --- Datos locales (señales)
+  lines = signal<Linea[]>([]);
+  brands = signal<Marca[]>([]);
+  loading = signal<boolean>(false);
+  error = signal<string | null>(null);
 
   // --- Computed
   filteredLines = computed(() => {
@@ -35,22 +37,21 @@ export class LineListComponent implements OnInit{
     let lines = this.lines();
 
     if (search) {
-      lines = lines.filter(
-        (l: Line) =>
-          l.name.toLowerCase().includes(search) ||
-          l.description?.toLowerCase().includes(search)
+      lines = lines.filter((l: Linea) =>
+        (l.nombre || '').toLowerCase().includes(search) ||
+        (l.descripcion || '').toLowerCase().includes(search)
       );
     }
 
     if (brandId) {
-      lines = lines.filter((l) => l.brandId === brandId);
+      lines = lines.filter((l: Linea) => String(l.marcaId) === String(brandId));
     }
 
     return lines;
   });
 
   totalLines = computed(() => this.filteredLines().length);
-  activeCount = computed(() => this.filteredLines().filter((l) => l.isActive).length);
+  activeCount = computed(() => this.filteredLines().filter((l) => (l as any).isActive).length);
 
   ngOnInit(): void {
     this.loadData();
@@ -65,11 +66,25 @@ export class LineListComponent implements OnInit{
   }
 
   private loadData(): void {
-    this.lineService.loadMockData();
+    this.loading.set(true);
+    this.error.set(null);
 
-    // Producción:
-    // this.linesService.getLines().subscribe();
-    // this.linesService.getBrands().subscribe();
+    this.lineService.getLines().subscribe({
+      next: (res) => {
+        this.lines.set(res || []);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(err?.message || String(err));
+        this.loading.set(false);
+      }
+    });
+
+    // Cargar marcas desde ProductsService
+    this.productsService.getBrands().subscribe({
+      next: (res: any) => this.brands.set(res || []),
+      error: () => this.brands.set([]),
+    });
   }
 
   onBrandChange(brandId: string): void {
@@ -89,18 +104,22 @@ export class LineListComponent implements OnInit{
     this.showFilters.update((show) => !show);
   }
 
-  deleteLine(line: Line, event: Event): void {
+  deleteLine(line: Linea, event: Event): void {
     event.stopPropagation();
-    if (confirm(`¿Eliminar la línea "${line.name}"?`)) {
-      this.lineService.deleteLine(line.id).subscribe({
-        next: () => console.log('Línea eliminada correctamente'),
+  if (confirm(`¿Eliminar la línea "${(line as any).nombre || line.id}"?`)) {
+      this.lineService.deleteLine((line as any).id).subscribe({
+        next: () => {
+          // eliminar del estado local
+          this.lines.update(curr => curr.filter(l => l.id !== (line as any).id));
+          console.log('Línea eliminada correctamente');
+        },
         error: (err) => alert('Error al eliminar línea: ' + err.message),
       });
     }
   }
 
-  getBrandName(brandId: string): string {
-    return this.brands().find((b) => b.id === brandId)?.name || 'Sin marca';
+  getBrandName(brandId: string | number): string {
+    return this.brands().find((b) => String(b.id) === String(brandId))?.nombre || 'Sin marca';
   }
 
   
@@ -108,12 +127,31 @@ export class LineListComponent implements OnInit{
     this.lineFormModal?.open('create');
   }
 
-  openEditLineModal(line: Line): void {
+  openEditLineModal(line: Linea): void {
     this.lineFormModal?.open('edit', line);
   }
 
   onLineCreated(lineData: any): void {
-    this.lineService.createLine(lineData).subscribe();
+    this.lineService.createLine(lineData).subscribe({
+      next: (created) => {
+        // añadir al estado local
+        this.lines.update(curr => [...curr, created]);
+      },
+      error: (err) => alert('Error al crear línea: ' + err.message),
+    });
+  }
+
+  // Helpers para propiedades opcionales que no están tipadas en Linea
+  hasImage(line: Linea): boolean {
+    return !!(line as any).image;
+  }
+
+  getImage(line: Linea): string | undefined {
+    return (line as any).image;
+  }
+
+  isLineActive(line: Linea): boolean {
+    return !!(line as any).isActive;
   }
 
   goBack(): void {

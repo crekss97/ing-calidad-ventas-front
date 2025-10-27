@@ -1,131 +1,62 @@
-// src/app/features/auth/services/auth.service.ts
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
-import { catchError, tap, delay } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { 
-  RegisterRequest, 
-  LoginRequest, 
-  AuthResponse, 
-  User,
-  ApiError, 
-  UserRole
-} from '../models/user.model';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environments';
+import { CreateUsuarioDto, LoginDto, Usuario } from '../../../models/global.models';
 
 @Injectable({
   providedIn: 'root'
 })
-
 export class AuthService {
-  
-  private apiUrl = environment.vercelUrl;
-  
-  //Simula mientra no hay back
-  private readonly isMockMode = true;
 
-  private currentUserSubject: BehaviorSubject<User | null>;
-  public currentUser$: Observable<User | null>;
-  
+  private apiUrl = environment.vercelUrl;
+
+  private currentUserSubject = new BehaviorSubject<Usuario | null>(null);
+  public currentUser$ = this.currentUserSubject.asObservable();
+
   private tokenKey = 'salesapp_token';
   private userKey = 'salesapp_user';
 
-  constructor(
-    private http: HttpClient,
-    private router: Router
-  ) {
-    const storedUser = this.getUserFromToken();
-    this.currentUserSubject = new BehaviorSubject<User | null>(storedUser);
-    this.currentUser$ = this.currentUserSubject.asObservable();
+  constructor(private http: HttpClient, private router: Router) {
+    const storedUser = this.getStoredUser();
+    if (storedUser) this.currentUserSubject.next(storedUser);
   }
 
-  /**
-   * Obtiene el usuario actual
-   */
-  public get currentUserValue(): User | null {
+  // ==================== GETTERS ====================
+
+  get currentUserValue(): Usuario | null {
     return this.currentUserSubject.value;
   }
 
-  /**
-   * Verifica si el usuario está autenticado
-   */
-  public get isAuthenticated(): boolean {
-    return !!this.getToken() && !!this.currentUserValue;
+  get isAuthenticated(): boolean {
+    return !!this.getToken();
   }
 
-  //===============
-  //     LOGIN 
-  //==============
+  // ==================== AUTH ====================
 
-  login(credentials: LoginRequest): Observable<AuthResponse> {
-    if (this.isMockMode) {
-      console.log('Modo Mock: Login simulado');
-      //simular delay de red de 800ms
-      return of({
-        token: 'fake-jwt-token',
-        user: {
-          id: 1,
-          name: 'Mock User',
-          email: credentials.email,
-          role: 'ADMIN' as UserRole
-        }
-      }).pipe (
-        delay(800),
-        tap(response => {
-          this.storeAuthData(response.token, response.user);
-        })
-      );
-    }
-
-
-    //Para cuando haya backend real
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials)
-      .pipe(
-        tap(response => {
-          if (response.token && response.user) {
-            this.storeAuthData(response.token, response.user);
-          }
-        }),
-        catchError(this.handleError)
-      );
-  }
-  //===============
-  //   REGISTER
-  //===============
-  register(data: RegisterRequest): Observable<AuthResponse> {
-    if (this.isMockMode) {
-      console.log('Modo Mock: Registro simulado');
-      const mockUser: User = {
-        id: 2, 
-        name: data.fullName,
-        email: data.email,
-        role: 'CLIENT' as UserRole
-      };
-      return of({
-        token: 'fake-jwt-token',
-        user: mockUser
-      }).pipe(
-        delay(800),
-        tap(response => {
-          this.storeAuthData(response.token, response.user);
-        })
-      );
-    }
-
-    const { confirmPassword, ...registerData } = data;
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, registerData)
-    .pipe(
-      tap(response => {
-        if (response.token && response.user) {
-          this.storeAuthData(response.token, response.user);
-        }
-      }),
+  /** Iniciar sesión */
+  login(credentials: LoginDto): Observable<Usuario> {
+    return this.http.post<{ token: string }>(`${this.apiUrl}/auth/login`, credentials).pipe(
+      tap(res => this.storeToken(res.token)),
+      switchMap(() => this.http.get<Usuario>(`${this.apiUrl}/auth/profile`)),
+      tap(user => this.storeUser(user)),
       catchError(this.handleError)
-    )
+    );
   }
-  
+
+  /** Registro de nuevo usuario */
+  register(data: CreateUsuarioDto): Observable<Usuario> {
+    return this.http.post<{ token: string }>(`${this.apiUrl}/auth/register`, data).pipe(
+      tap(res => this.storeToken(res.token)),
+      switchMap(() => this.http.get<Usuario>(`${this.apiUrl}/auth/profile`)),
+      tap(user => this.storeUser(user)),
+      catchError(this.handleError)
+    );
+  }
+
+  /** Cerrar sesión */
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
@@ -133,101 +64,47 @@ export class AuthService {
     this.router.navigate(['/auth/login']);
   }
 
-  /**
-   * Obtener token almacenado
-   */
+  // ==================== HELPERS ====================
+
   getToken(): string | null {
     return localStorage.getItem(this.tokenKey);
   }
 
-  /**
-   * Verificar email (placeholder para cuando se implemente)
-   */
-  verifyEmail(token: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/verify-email`, { token })
-      .pipe(catchError(this.handleError));
-  }
-
-  /**
-   * Solicitar recuperación de contraseña
-   */
-  forgotPassword(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/forgot-password`, { email })
-      .pipe(catchError(this.handleError));
-  }
-
-  /**
-   * Resetear contraseña
-   */
-  resetPassword(token: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reset-password`, { token, newPassword })
-      .pipe(catchError(this.handleError));
-  }
-
-  /**
-   * Almacenar datos de autenticación
-   */
-  private storeAuthData(token: string, user: User): void {
+  private storeToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
+  }
+
+  private storeUser(user: Usuario): void {
     localStorage.setItem(this.userKey, JSON.stringify(user));
     this.currentUserSubject.next(user);
   }
 
- private getUserFromToken(): User | null {
-    const token = this.getToken();
-    if (!token) return null;
-
-    try {
-      const payload = this.decodeToken(token);
-      return {
-        id: payload.id,
-        name: payload.name,
-        email: payload.email,
-        role: payload.role
-      };
-    } catch {
-      return null;
-    }
+  private getStoredUser(): Usuario | null {
+    const stored = localStorage.getItem(this.userKey);
+    return stored ? JSON.parse(stored) : null;
   }
 
-  private decodeToken(token: string): any {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(window.atob(base64));
-  }
+  // ==================== ERRORES ====================
 
-
-
-  /**
-   * Manejo de errores HTTP
-   */
   private handleError(error: HttpErrorResponse): Observable<never> {
-    let errorMessage = 'Ha ocurrido un error desconocido';
-    
+    let message = 'Error desconocido';
+
     if (error.error instanceof ErrorEvent) {
-      // Error del lado del cliente
-      errorMessage = `Error: ${error.error.message}`;
+      message = `Error del cliente: ${error.error.message}`;
     } else {
-      // Error del lado del servidor
-      if (error.error?.message) {
-        errorMessage = error.error.message;
-      } else if (error.status === 0) {
-        errorMessage = 'No se pudo conectar con el servidor';
-      } else if (error.status === 400) {
-        errorMessage = 'Datos inválidos';
-      } else if (error.status === 401) {
-        errorMessage = 'Credenciales incorrectas';
-      } else if (error.status === 409) {
-        errorMessage = 'El email ya está registrado';
-      } else if (error.status === 500) {
-        errorMessage = 'Error interno del servidor';
+      switch (error.status) {
+        case 0: message = 'No se pudo conectar con el servidor'; break;
+        case 400: message = 'Datos inválidos'; break;
+        case 401: message = 'Credenciales incorrectas'; break;
+        case 409: message = 'El correo ya está registrado'; break;
+        case 500: message = 'Error interno del servidor'; break;
+        default: message = error.error?.message || message;
       }
     }
 
     return throwError(() => ({
-      statusCode: error.status,
-      message: errorMessage,
-      errors: error.error?.errors
-    } as ApiError));
+      status: error.status,
+      message
+    }));
   }
 }

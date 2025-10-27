@@ -6,8 +6,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { AuthLayout } from '../../../../shared/layouts/auth-layout/auth-layout';
 import { CustomValidators } from '../../../../shared/validators/custom-validators';
-import { ApiError, LoginRequest } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
+import { LoginDto } from '../../../../models/global.models';
 
 @Component({
   selector: 'app-login',
@@ -99,9 +99,9 @@ export class LoginComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set('');
 
-    const loginData: LoginRequest = {
-      email: this.loginForm.value.email,
-      password: this.loginForm.value.password
+    const loginData: LoginDto = {
+      correo: this.loginForm.value.email,
+      contraseña: this.loginForm.value.password
     };
 
     this.authService.login(loginData).subscribe({
@@ -117,7 +117,7 @@ export class LoginComponent implements OnInit {
         // Redirigir al dashboard
         this.router.navigate(['/dashboard']);
       },
-      error: (error: ApiError) => {
+      error: (error: any) => {
         console.error('Error en login:', error);
         
         // Mensajes de error personalizados según el código

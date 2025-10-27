@@ -3,10 +3,13 @@
 import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AuthService } from '../auth/services/auth.service';
-import { User } from '../auth/models/user.model';
 import { ProductFormComponent } from '../products/models/components/product-form/product-form-component';
 import { RegistrarVentaComponent } from '../sales/model/component/sale-form/sale-form';
+import { SalesService } from '../sales/model/services/sales';
+import { ProductsService } from '../products/models/services/products.service';
+import { Usuario } from '../../models/global.models';
 
 interface MetricCard {
   title: string;
@@ -40,95 +43,18 @@ interface QuickAction {
 })
 export class DashboardComponent implements OnInit {
   @ViewChild(ProductFormComponent) productForm!: ProductFormComponent
-  currentUser = signal<User | null>(null);
+  currentUser = signal<Usuario | null>(null);
   
-  // Datos de métricas (simulados)
-  metrics = signal<MetricCard[]>([
-    {
-      title: 'Ventas Totales',
-      value: '$45,231.89',
-      change: '+20% desde el mes pasado',
-      changeType: 'positive',
-      icon: 'bi-currency-dollar'
-    },
-    {
-      title: 'Clientes',
-      value: '+2,350',
-      change: '+180 nuevos este mes',
-      changeType: 'positive',
-      icon: 'bi-people'
-    },
-    {
-      title: 'Productos',
-      value: '1,234',
-      change: '+12 agregados esta semana',
-      changeType: 'positive',
-      icon: 'bi-box-seam'
-    },
-    {
-      title: 'Pedidos',
-      value: '+573',
-      change: '-4% desde la semana pasada',
-      changeType: 'negative',
-      icon: 'bi-cart'
-    }
-  ]);
-
-  // Ventas recientes (simuladas)
-  recentSales= signal<RecentSale[]>([
-    {
-      id: '1',
-      customerName: 'Olivia Martin',
-      customerEmail: 'olivia.martin@email.com',
-      amount: 1999.00,
-      initials: 'OM',
-      avatarColor: '#0066CC'
-    },
-    {
-      id: '2',
-      customerName: 'Jackson Lee',
-      customerEmail: 'jackson.lee@email.com',
-      amount: 39.00,
-      initials: 'JL',
-      avatarColor: '#10b981'
-    },
-    {
-      id: '3',
-      customerName: 'Isabella Nguyen',
-      customerEmail: 'isabella.nguyen@email.com',
-      amount: 299.00,
-      initials: 'IN',
-      avatarColor: '#f59e0b'
-    },
-    {
-      id: '4',
-      customerName: 'William Kim',
-      customerEmail: 'will@email.com',
-      amount: 99.00,
-      initials: 'WK',
-      avatarColor: '#8b5cf6'
-    },
-    {
-      id: '5',
-      customerName: 'Sofia Davis',
-      customerEmail: 'sofia.davis@email.com',
-      amount: 39.00,
-      initials: 'SD',
-      avatarColor: '#ec4899'
-    }
-  ]);
-  
-  // Acciones rápidas
-  quickActions = signal<QuickAction[]>([
-    { icon: 'bi-cart', label: 'Nueva Venta', route: '/sales/new' },
-    { icon: 'bi-person-plus', label: 'Agregar Cliente', route: '/clients/new' },
-    { icon: 'bi-box', label: 'Nuevo Producto', route: '/products/new' },
-    { icon: 'bi-graph-up', label: 'Ver Reportes', route: '/reports' },
-  ]);
+  // Datos dinámicos
+  metrics = signal<MetricCard[]>([]);
+  recentSales = signal<RecentSale[]>([]);
+  quickActions = signal<QuickAction[]>([]);
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private salesService: SalesService,
+    private productsService: ProductsService
   ) {}
 
   ngOnInit(): void {
@@ -141,6 +67,9 @@ export class DashboardComponent implements OnInit {
     // Si no hay usuario autenticado, redirigir a login
     if (!this.currentUser()) {
       this.router.navigate(['/auth/login']);
+    }
+    else {
+      this.loadData();
     }
   }
 
@@ -168,6 +97,81 @@ export class DashboardComponent implements OnInit {
     this.router.navigate([route]);
   }
 
+  private loadData(): void {
+    // Obtener ventas y productos en paralelo
+    forkJoin({
+      ventas: this.salesService.obtenerVentas(),
+      productos: this.productsService.getProducts()
+    }).subscribe({
+      next: ({ ventas, productos }) => {
+        // Métricas
+        const totalVentas = ventas.reduce((s, v) => s + (v.total || 0), 0);
+        const uniqueClients = new Set(ventas.map(v => v.usuarioId)).size;
+        const productsCount = productos.length;
+        const ordersCount = ventas.length;
+
+        this.metrics.set([
+          { title: 'Ventas Totales', value: this.formatCurrency(totalVentas), change: '', changeType: 'positive', icon: 'bi-currency-dollar' },
+          { title: 'Clientes', value: `${uniqueClients}`, change: '', changeType: 'positive', icon: 'bi-people' },
+          { title: 'Productos', value: `${productsCount}`, change: '', changeType: 'positive', icon: 'bi-box-seam' },
+          { title: 'Pedidos', value: `${ordersCount}`, change: '', changeType: 'positive', icon: 'bi-cart' }
+        ]);
+
+        // Ventas recientes (las 5 más recientes)
+        const recientes = ventas
+          .slice()
+          .sort((a, b) => new Date(b.fechaHora).getTime() - new Date(a.fechaHora).getTime())
+          .slice(0, 5)
+          .map(v => {
+            const customerId = v.usuarioId?.toString() ?? 'N/A';
+            return {
+              id: String(v.id),
+              customerName: `Cliente #${customerId}`,
+              customerEmail: '',
+              amount: v.total || 0,
+              initials: this.getInitialsFromId(customerId),
+              avatarColor: this.getColorFromId(customerId)
+            } as RecentSale;
+          });
+
+        this.recentSales.set(recientes);
+
+        // Quick actions según rol
+        const role = this.currentUser()?.rol as string | undefined;
+        const actions: QuickAction[] = [
+          { icon: 'bi-cart', label: 'Nueva Venta', route: '/sales/new' },
+          { icon: 'bi-box', label: 'Nuevo Producto', route: '/products/new' },
+          { icon: 'bi-graph-up', label: 'Ver Reportes', route: '/reports' }
+        ];
+
+        if (role === 'ADMIN') {
+          actions.splice(1, 0, { icon: 'bi-people', label: 'Administrar Usuarios', route: '/users' });
+        }
+
+        this.quickActions.set(actions);
+      },
+      error: (err) => {
+        console.error('Error cargando datos del dashboard', err);
+        this.metrics.set([]);
+        this.recentSales.set([]);
+        this.quickActions.set([]);
+      }
+    });
+  }
+
+  private getInitialsFromId(id: string): string {
+    return id.substring(0, 2).toUpperCase();
+  }
+
+  private getColorFromId(id: string): string {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+      hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+    return `#${'00000'.substring(0, 6 - c.length)}${c}`;
+  }
+
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -184,7 +188,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get userName(): string {
-    return this.currentUser()?.fullName || 'Usuario';
+    return this.currentUser()?.nombre || 'Usuario';
   }
 
   @ViewChild(RegistrarVentaComponent) registrarVenta!: RegistrarVentaComponent;
