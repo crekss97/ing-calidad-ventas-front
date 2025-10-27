@@ -303,19 +303,12 @@
     margin-bottom: 0.25rem;
   }
 
-  .website {
+  .contact-person {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
     font-size: 0.8125rem;
-    color: #0066cc;
-    text-decoration: none;
-    transition: color 0.2s ease;
-
-    &:hover {
-      color: #0052a3;
-      text-decoration: underline;
-    }
+    color: #6b7280;
 
     i {
       font-size: 0.875rem;
@@ -327,61 +320,19 @@
   color: #6b7280;
 }
 
-.cuit {
-  font-family: 'Courier New', monospace;
-  font-weight: 500;
-  color: #374151;
-}
-
-.contact-info {
+.contact-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-
-  .contact-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-
-    i {
-      color: #9ca3af;
-      font-size: 0.875rem;
-    }
-
-    a {
-      color: #0066cc;
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-
-    span {
-      color: #6b7280;
-    }
-  }
-}
-
-.status-badge {
-  display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  background: #fee2e2;
-  color: #991b1b;
-
-  &.active {
-    background: #d1fae5;
-    color: #065f46;
-  }
+  gap: 0.5rem;
+  font-size: 0.875rem;
 
   i {
-    font-size: 1rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+  }
+
+  span {
+    color: #6b7280;
   }
 }
 
@@ -717,12 +668,6 @@
       font-size: 0.875rem;
     }
   }
-
-  .contact-info {
-    .contact-item {
-      font-size: 0.8125rem;
-    }
-  }
 }
 
 @media (max-width: 768px) {
@@ -775,7 +720,7 @@
 
   // Tabla responsive - scroll horizontal
   .suppliers-table {
-    min-width: 800px;
+    min-width: 600px;
   }
 }
 

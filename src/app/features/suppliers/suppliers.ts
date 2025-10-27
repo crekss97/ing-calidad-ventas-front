@@ -7,7 +7,6 @@ import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { SupplierService } from './services/supplier.service';
 import { Supplier, CreateSupplierRequest, UpdateSupplierRequest } from './models/supplier.model';
-import { CustomValidators } from '../../shared/validators/custom-validators';
 
 @Component({
   selector: 'app-suppliers',
@@ -48,12 +47,9 @@ export class SuppliersComponent implements OnInit, OnDestroy {
   ) {
     this.supplierForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(3)]],
-      razonSocial: ['', [Validators.required, Validators.minLength(3)]],
-      cuitRut: ['', [Validators.required, this.validateCuitRut()]],
       direccion: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
-      email: ['', [Validators.required, CustomValidators.email()]],
-      sitioWeb: ['']
+      contacto: ['', [Validators.required, Validators.minLength(3)]]
     });
   }
 
@@ -102,9 +98,9 @@ export class SuppliersComponent implements OnInit, OnDestroy {
 
     this.filteredSuppliers = this.suppliers.filter(supplier => 
       supplier.nombre.toLowerCase().includes(this.searchTerm) ||
-      supplier.razonSocial.toLowerCase().includes(this.searchTerm) ||
-      supplier.cuitRut.includes(this.searchTerm) ||
-      supplier.email.toLowerCase().includes(this.searchTerm)
+      supplier.direccion.toLowerCase().includes(this.searchTerm) ||
+      supplier.telefono.includes(this.searchTerm) ||
+      (supplier.contacto && supplier.contacto.toLowerCase().includes(this.searchTerm))
     );
   }
 
@@ -123,12 +119,9 @@ export class SuppliersComponent implements OnInit, OnDestroy {
     this.currentSupplierId = supplier.id;
     this.supplierForm.patchValue({
       nombre: supplier.nombre,
-      razonSocial: supplier.razonSocial,
-      cuitRut: supplier.cuitRut,
       direccion: supplier.direccion,
       telefono: supplier.telefono,
-      email: supplier.email,
-      sitioWeb: supplier.sitioWeb || ''
+      contacto: supplier.contacto || ''
     });
     this.isFormOpen = true;
     this.clearMessages();
@@ -177,8 +170,10 @@ export class SuppliersComponent implements OnInit, OnDestroy {
       });
   }
 
-  private updateSupplier(id: number, data: UpdateSupplierRequest): void {
-    this.supplierService.updateSupplier(id, { ...data, id })
+  private updateSupplier(id: number, data: CreateSupplierRequest): void {
+    const updateData: UpdateSupplierRequest = { ...data, id };
+    
+    this.supplierService.updateSupplier(id, updateData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (supplier) => {
@@ -252,33 +247,7 @@ export class SuppliersComponent implements OnInit, OnDestroy {
       return `Mínimo ${minLength} caracteres`;
     }
 
-    if (field.errors['invalidEmail']) {
-      return 'Email inválido';
-    }
-
-    if (field.errors['invalidCuitRut']) {
-      return 'CUIT/RUT inválido';
-    }
-
     return 'Campo inválido';
-  }
-
-  private validateCuitRut() {
-    return (control: any) => {
-      if (!control.value) return null;
-      
-      const value = control.value.replace(/[-\s]/g, '');
-      
-      // Validar formato CUIT argentino (XX-XXXXXXXX-X) o RUT chileno
-      const cuitPattern = /^\d{11}$/;
-      const rutPattern = /^\d{7,8}$/;
-      
-      if (!cuitPattern.test(value) && !rutPattern.test(value)) {
-        return { invalidCuitRut: true };
-      }
-      
-      return null;
-    };
   }
 
   // ============= Navegación =============
@@ -288,7 +257,6 @@ export class SuppliersComponent implements OnInit, OnDestroy {
   }
 
   viewSupplierDetails(supplier: Supplier): void {
-    // TODO: Implementar vista de detalles
     console.log('Ver detalles de:', supplier);
     alert(`Detalles de ${supplier.nombre}\n(Funcionalidad en desarrollo)`);
   }
