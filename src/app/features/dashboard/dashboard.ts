@@ -34,7 +34,7 @@ interface QuickAction {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ProductFormComponent],
+  imports: [CommonModule, ProductFormComponent, RegistrarVentaComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss']
 })
