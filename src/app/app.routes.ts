@@ -23,6 +23,10 @@ export const routes: Routes = [
         path: 'lines',
         loadChildren: () => import('./features/lines/lines.routes').then(m => m.LineRoutes)
     },
+    {
+        path: 'sales',
+        loadChildren: () => import('./features/sales/sales.routes').then(m => m.SalesRoutes)
+    },
 
     // {
     //     path: 'access-denied',

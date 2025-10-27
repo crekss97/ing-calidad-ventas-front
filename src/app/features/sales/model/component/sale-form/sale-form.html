@@ -1,0 +1,231 @@
+@if (isOpen()) {
+<div class="modal-overlay" (click)="onBackdropClick($event)">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <h2>Registrar Nueva Venta</h2>
+            <button type="button" class="btn-close" (click)="close()" [disabled]="guardando()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+            <div class="venta-layout">
+                <!-- Panel de búsqueda de productos -->
+                <div class="productos-section">
+                    <h3>Productos Disponibles</h3>
+
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Buscar productos..." [value]="busqueda()"
+                            (input)="onBusquedaChange($event)" class="search-input" />
+                    </div>
+
+                    <div class="productos-list">
+                        @if (productosFiltrados().length === 0) {
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No se encontraron productos</p>
+                        </div>
+                        } @else {
+                        @for (producto of productosFiltrados(); track producto.id) {
+                        <div class="producto-card">
+                            <div class="producto-img-placeholder">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+                            <div class="producto-info">
+                                <h4>{{ producto.nombre }}</h4>
+                                @if ( producto.linea) {
+                                <p class="producto-meta">{{ producto.linea.marca?.nombre }} - {{ producto.linea.nombre }}</p>
+                                }
+                                <div class="producto-footer">
+                                    <span class="producto-precio">\${{ producto.precio | number:'1.2-2' }}</span>
+                                    <span class="producto-stock" [class.stock-bajo]="producto.stock < 5">
+                                        Stock: {{ producto.stock }}
+                                    </span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-add-producto" (click)="agregarProducto(producto)"
+                                [disabled]="producto.stock === 0">
+                                <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                        }
+                        }
+                    </div>
+                </div>
+
+                <!-- Panel del carrito -->
+                <div class="carrito-section">
+                    <h3>Carrito de Venta</h3>
+
+                    <form [formGroup]="ventaForm">
+                        <div formArrayName="detalles" class="carrito-items">
+                            @if (detalles.length === 0) {
+                            <div class="empty-cart">
+                                <i class="bi bi-cart3"></i>
+                                <p>El carrito está vacío</p>
+                                <small>Agregue productos para comenzar</small>
+                            </div>
+                            } @else {
+                            @for (detalle of detalles.controls; track $index) {
+                            <div [formGroupName]="$index" class="carrito-item">
+                                <div class="item-info">
+                                    <strong>{{ obtenerNombreProducto(detalle.get('productoId')?.value) }}</strong>
+                                    <span class="item-precio">
+                                        \${{ obtenerPrecioProducto(detalle.get('productoId')?.value) | number:'1.2-2' }}
+                                    </span>
+                                </div>
+
+                                <div class="item-controls">
+                                    <div class="quantity-control">
+                                        <button type="button" class="btn-qty" (click)="decrementarCantidad($index)">
+                                            <i class="bi bi-dash"></i>
+                                        </button>
+                                        <input type="number" formControlName="cantidad" class="qty-input" min="1"
+                                            [max]="obtenerStockProducto(detalle.get('productoId')?.value)"
+                                            (change)="actualizarSubtotal($index)" readonly>
+                                        <button type="button" class="btn-qty" (click)="incrementarCantidad($index)"
+                                            [disabled]="detalle.get('cantidad')?.value >= obtenerStockProducto(detalle.get('productoId')?.value)">
+                                            <i class="bi bi-plus"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="item-subtotal">
+                                        <span>\${{ detalle.get('subtotal')?.value | number:'1.2-2' }}</span>
+                                    </div>
+
+                                    <button type="button" class="btn-remove" (click)="removerProducto($index)"
+                                        title="Eliminar producto">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            }
+                            }
+                        </div>
+
+                        <!-- Resumen -->
+                        @if (detalles.length > 0) {
+                        <div class="carrito-resumen">
+                            <div class="resumen-line">
+                                <span>Productos ({{ detalles.length }})</span>
+                                <span>\${{ subtotal() | number:'1.2-2' }}</span>
+                            </div>
+                            <div class="resumen-line total">
+                                <strong>Total</strong>
+                                <strong class="total-amount">\${{ total() | number:'1.2-2' }}</strong>
+                            </div>
+                        </div>
+
+                        <!-- Errores -->
+                        @if (erroresValidacion().length > 0) {
+                        <div class="alert-error">
+                            @for (error of erroresValidacion(); track error) {
+                            <p><i class="bi bi-exclamation-triangle"></i> {{ error }}</p>
+                            }
+                        </div>
+                        }
+
+                        @if (errorGeneral()) {
+                        <div class="alert-error">
+                            <p><i class="bi bi-exclamation-triangle"></i> {{ errorGeneral() }}</p>
+                        </div>
+                        }
+                        }
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="limpiarCarrito()"
+                [disabled]="detalles.length === 0 || guardando()">
+                <i class="bi bi-trash"></i>
+                Limpiar Carrito
+            </button>
+            <button type="button" class="btn btn-primary" (click)="confirmarVenta()"
+                [disabled]="guardando() || detalles.length === 0">
+                @if (guardando()) {
+                <span class="spinner-small"></span>
+                Procesando...
+                } @else {
+                <i class="bi bi-check-lg"></i>
+                Confirmar Venta
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Modal de confirmación -->
+@if (mostrarModalConfirmacion()) {
+<div class="modal-overlay quick-create-overlay" (click)="cerrarModalConfirmacion()">
+    <div class="modal-content quick-create-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Confirmar Venta</h3>
+            <button type="button" class="btn-close-modal" (click)="cerrarModalConfirmacion()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <p>¿Confirma el registro de esta venta?</p>
+            <div class="confirmacion-resumen">
+                <div class="resumen-row">
+                    <span>Total de productos:</span>
+                    <strong>{{ detalles.length }}</strong>
+                </div>
+                <div class="resumen-row">
+                    <span>Total a cobrar:</span>
+                    <strong class="text-primary">\${{ total() | number:'1.2-2' }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="cerrarModalConfirmacion()">
+                Cancelar
+            </button>
+            <button type="button" class="btn btn-primary" (click)="procesarVenta()" [disabled]="procesando()">
+                @if (procesando()) {
+                <span class="spinner-small"></span>
+                Procesando...
+                } @else {
+                Confirmar
+                }
+            </button>
+        </div>
+    </div>
+</div>
+}
+
+<!-- Modal de éxito -->
+@if (mostrarModalExito()) {
+<div class="modal-overlay quick-create-overlay" (click)="cerrarModalExitoYLimpiar()">
+    <div class="modal-content quick-create-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h3>¡Venta Registrada!</h3>
+            <button type="button" class="btn-close-modal" (click)="cerrarModalExitoYLimpiar()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <div class="success-icon">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <p class="success-message">{{ mensajeExito() }}</p>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" (click)="cerrarModalExitoYLimpiar()">
+                Aceptar
+            </button>
+        </div>
+    </div>
+</div>
+}

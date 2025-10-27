@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../auth/services/auth.service';
 import { User } from '../auth/models/user.model';
 import { ProductFormComponent } from '../products/models/components/product-form/product-form-component';
+import { RegistrarVentaComponent } from '../sales/model/component/sale-form/sale-form';
 
 interface MetricCard {
   title: string;
@@ -39,7 +40,7 @@ interface QuickAction {
 })
 export class DashboardComponent implements OnInit {
   @ViewChild(ProductFormComponent) productForm!: ProductFormComponent
-  currentUser: User | null = null;
+  currentUser = signal<User | null>(null);
   
   // Datos de métricas (simulados)
   metrics = signal<MetricCard[]>([
@@ -115,7 +116,7 @@ export class DashboardComponent implements OnInit {
       initials: 'SD',
       avatarColor: '#ec4899'
     }
-  ];
+  ]);
   
   // Acciones rápidas
   quickActions = signal<QuickAction[]>([
@@ -154,17 +155,17 @@ export class DashboardComponent implements OnInit {
       this.productForm.open();
       return;
     }
-
-    alert(`Funcionalidad "${action.label}" en desarrollo.\nRuta: ${action.route}`);
+    if (action.label === 'Nueva Venta') {
+      this.registrarVenta.open();
+      return;
+    }
+    
+    this.navigateTo(action.route);
+    //alert(`Funcionalidad "${action.label}" en desarrollo.\nRuta: ${action.route}`);
   }
 
   navigateTo(route: string): void {
-    // Placeholder para navegación
-    if (route === '/products') {
-      this.router.navigate([route]);
-    } else {
-      alert(`Navegando a: ${route}\n(Funcionalidad en desarrollo)`);
-    }
+    this.router.navigate([route]);
   }
 
   formatCurrency(amount: number): string {
@@ -185,4 +186,6 @@ export class DashboardComponent implements OnInit {
   get userName(): string {
     return this.currentUser()?.fullName || 'Usuario';
   }
+
+  @ViewChild(RegistrarVentaComponent) registrarVenta!: RegistrarVentaComponent;
 }

@@ -116,7 +116,7 @@
         >
           <option value="">Todas las marcas</option>
           @for (brand of brands(); track brand.id) {
-          <option [value]="brand.id">{{ brand.name }}</option>
+          <option [value]="brand.id">{{ brand.nombre }}</option>
           }
         </select>
       </div>
@@ -131,7 +131,7 @@
         >
           <option value="">Todas las líneas</option>
           @for (line of availableLines(); track line.id) {
-          <option [value]="line.id">{{ line.name }}</option>
+          <option [value]="line.id">{{ line.nombre }}</option>
           }
         </select>
       </div>
@@ -146,25 +146,8 @@
     }
   </div>
 
-  <!-- Loading State -->
-  @if (loading()) {
-  <div class="loading-container">
-    <div class="spinner"></div>
-    <p>Cargando productos...</p>
-  </div>
-  }
-
-  <!-- Error State -->
-  @if (error()) {
-  <div class="error-container">
-    <i class="bi bi-exclamation-circle"></i>
-    <p>{{ error() }}</p>
-    <button class="btn btn-primary" (click)="retryLoad()">Reintentar</button>
-  </div>
-  }
-
   <!-- Empty State -->
-  @if (!loading() && !error() && filteredProducts().length === 0) {
+  @if ( filteredProducts().length === 0) {
   <div class="empty-state">
     <i class="bi bi-inbox"></i>
     <h3>No se encontraron productos</h3>
@@ -182,18 +165,14 @@
   }
 
   <!-- Products Grid View -->
-  @if (!loading() && !error() && filteredProducts().length > 0 && viewMode() === 'grid') {
+  @if (filteredProducts().length > 0 && viewMode() === 'grid') {
   <div class="products-grid">
     @for (product of filteredProducts(); track product.id) {
     <div class="product-card">
       <div class="product-image">
-        @if (product.images && product.images.length > 0) {
-        <img [src]="product.images[0]" [alt]="product.name" />
-        } @else {
         <div class="placeholder-image">
           <i class="bi bi-image"></i>
         </div>
-        }
         <div class="product-badge" [class]="getStockClass(product.stock)">
           {{ getStockText(product.stock) }}
         </div>
@@ -201,15 +180,14 @@
 
       <div class="product-info">
         <div class="product-meta">
-          <span class="product-brand">{{ getBrandName(product.brandId) }}</span>
-          <span class="product-line">{{ getLineName(product.lineId) }}</span>
+          <span class="product-line">{{ getLineName(product.lineaId) }}</span>
         </div>
 
-        <h3 class="product-name">{{ product.name }}</h3>
-        <p class="product-description">{{ product.description }}</p>
+        <h3 class="product-name">{{ product.nombre }}</h3>
+        <p class="product-description">{{ product.descripcion }}</p>
 
         <div class="product-footer">
-          <div class="product-price">{{ formatPrice(product.price) }}</div>
+          <div class="product-price">{{ formatPrice(product.precio) }}</div>
           <div class="product-actions">
             <a routerLink="['/products', product.id]" class="btn-icon" title="Ver detalles">
               <i class="bi bi-eye"></i>
@@ -234,7 +212,7 @@
   <!-- ✅ cierre del bloque @if -->
 
   <!-- Products List View -->
-  @if (!loading() && !error() && filteredProducts().length > 0 && viewMode() === 'list') {
+  @if (filteredProducts().length > 0 && viewMode() === 'list') {
   <table class="products-table">
     <thead>
       <tr>
@@ -249,10 +227,9 @@
     <tbody>
       @for (product of filteredProducts(); track product.id) {
       <tr>
-        <td>{{ product.name }}</td>
-        <td>{{ getBrandName(product.brandId) }}</td>
-        <td>{{ getLineName(product.lineId) }}</td>
-        <td>{{ formatPrice(product.price) }}</td>
+        <td>{{ product.nombre }}</td>
+        <td>{{ getLineName(product.lineaId) }}</td>
+        <td>{{ formatPrice(product.precio) }}</td>
         <td>{{ getStockText(product.stock) }}</td>
         <td>
           <div class="table-actions">

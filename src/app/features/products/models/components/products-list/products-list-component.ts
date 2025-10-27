@@ -1,18 +1,17 @@
+import { CommonModule, Location } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
-  OnInit,
-  signal,
   computed,
   inject,
-  ChangeDetectionStrategy,
+  OnInit,
+  signal,
   ViewChild,
 } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
+import { Linea, Marca, Producto } from '../../../../../models/global.models';
 import { ProductsService } from '../../services/products.service';
-import { Product, ProductFilters } from '../../../models/product.models';
-import { RouterModule } from '@angular/router';
 import { ProductFormComponent } from '../product-form/product-form-component';
 
 @Component({
@@ -34,18 +33,17 @@ export class ProductsListComponent implements OnInit {
   constructor(private location: Location) {}
 
   searchControl = new FormControl('');
-  selectedBrand = signal<string>('');
-  selectedLine = signal<string>('');
+  selectedBrand = signal<number>(0);
+  selectedLine = signal<number>(0);
   viewMode = signal<'grid' | 'list'>('grid');
   showFilters = signal(false);
 
-  products = this.productsService.products;
-  brands = this.productsService.brands;
-  lines = this.productsService.lines;
-  loading = this.productsService.loading;
-  error = this.productsService.error;
+  // Local signals to hold arrays (nos subscribimos a los servicios en loadData)
+  products = signal<Producto[]>([]);
+  brands = signal<Marca[]>([]);
+  lines = signal<Linea[]>([]);
 
-  filteredProducts = computed(() => {
+  filteredProducts = computed<Producto[]>(() => {
     const search = this.searchControl.value?.toLowerCase() || '';
     const brandId = this.selectedBrand();
     const lineId = this.selectedLine();
@@ -53,28 +51,24 @@ export class ProductsListComponent implements OnInit {
 
     if (search) {
       products = products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(search) ||
-          p.description?.toLowerCase().includes(search) ||
-          p.sku?.toLowerCase().includes(search)
-      );
-    }
-
-    if (brandId) {
-      products = products.filter((p) => p.brandId === brandId);
+        (p: Producto) =>
+          p.nombre.toLowerCase().includes(search) ||
+          p.descripcion?.toLowerCase().includes(search) ||
+          p.linea?.nombre.toLowerCase().includes(search));
     }
 
     if (lineId) {
-      products = products.filter((p) => p.lineId === lineId);
+      products = products.filter((p: Producto) => p.lineaId === +lineId);
     }
 
     return products;
   });
 
-  availableLines = computed(() => {
+  availableLines = computed<Linea[]>(() => {
     const brandId = this.selectedBrand();
     if (!brandId) return this.lines();
-    return this.lines().filter((line) => line.brandId === brandId);
+    // marcaId puede venir como string o number según fuente; usar comparación laxa
+    return this.lines().filter((line: Linea) => line.marcaId == brandId as any);
   });
 
   totalProducts = computed(() => this.filteredProducts().length);
@@ -100,31 +94,48 @@ export class ProductsListComponent implements OnInit {
     //this.productsService.loadMockData();
 
     // Para producción, descomentar:
-    this.productsService.getProducts().subscribe();
-    this.productsService.getBrands().subscribe();
-    this.productsService.getLines().subscribe();
+    this.productsService.getProducts().subscribe({
+      next: (res: any) => {
+        const items: Producto[] = Array.isArray(res) ? res : (res?.data ?? []);
+        this.products.set(items);
+      },
+      error: () => {
+        // dejar el estado vacío en caso de error
+        this.products.set([]);
+      }
+    });
+
+    this.productsService.getBrands().subscribe({
+      next: (res: any) => this.brands.set(Array.isArray(res) ? res : (res?.data ?? [])),
+      error: () => this.brands.set([])
+    });
+
+    this.productsService.getLines().subscribe({
+      next: (res: any) => this.lines.set(Array.isArray(res) ? res : (res?.data ?? [])),
+      error: () => this.lines.set([])
+    });
   }
 
-  onBrandChange(brandId: string): void {
+  onBrandChange(brandId: number): void {
     this.selectedBrand.set(brandId);
     // Limpiar línea si la marca cambia
     if (brandId) {
       const currentLine = this.selectedLine();
       const availableLines = this.availableLines();
       if (currentLine && !availableLines.find((l) => l.id === currentLine)) {
-        this.selectedLine.set('');
+        this.selectedLine.set(0);
       }
     }
   }
 
-  onLineChange(lineId: string): void {
+  onLineChange(lineId: number): void {
     this.selectedLine.set(lineId);
   }
 
   clearFilters(): void {
     this.searchControl.setValue('');
-    this.selectedBrand.set('');
-    this.selectedLine.set('');
+    this.selectedBrand.set(0);
+    this.selectedLine.set(0);
   }
 
   openCreateModal(): void {
@@ -139,10 +150,10 @@ export class ProductsListComponent implements OnInit {
     this.showFilters.update((show) => !show);
   }
 
-  deleteProduct(product: Product, event: Event): void {
+  deleteProduct(product: Producto, event: Event): void {
     event.stopPropagation();
 
-    if (confirm(`¿Estás seguro de eliminar "${product.name}"?`)) {
+    if (confirm(`¿Estás seguro de eliminar "${product.nombre}"?`)) {
       this.productsService.deleteProduct(product.id).subscribe({
         next: () => {
           console.log('Producto eliminado exitosamente');
@@ -154,12 +165,9 @@ export class ProductsListComponent implements OnInit {
     }
   }
 
-  getBrandName(brandId: string): string {
-    return this.brands().find((b) => b.id === brandId)?.name || 'Sin marca';
-  }
 
-  getLineName(lineId: string): string {
-    return this.lines().find((l) => l.id === lineId)?.name || 'Sin línea';
+  getLineName(lineId: number): string {
+    return this.lines().find((l: Linea) => l.id === lineId)?.nombre || 'Sin línea';
   }
 
   formatPrice(price: number): string {
