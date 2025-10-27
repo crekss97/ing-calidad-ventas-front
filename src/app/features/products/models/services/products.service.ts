@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environments';
@@ -11,14 +11,51 @@ import {
   Proveedor,
   Producto
 } from '../../../../models/global.models';
+import { AuthService } from '../../../auth/services/auth.service';
+
+interface BackendProductRequest {
+  nombre: string;
+  descripcion: string;
+  stock: number;
+  precio: number; 
+  lineaId: number;
+  proveedorId: number;
+  estadoId: number;
+}
+
+interface BackendProduct {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  stock?: number;
+  precio: number;
+  linea?: {
+    id: number;
+    nombre: string;
+    marcaId?: number;
+    marca?: {
+      id: number;
+      nombre: string;
+    };
+  };
+  lineaId?: number;
+  proveedorId?: number;
+  estadoId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
+
+
+
 export class ProductsService {
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private apiUrl = environment.vercelUrl;
 
-  constructor(private http: HttpClient) {}
 
   // ==================== PRODUCTS ====================
 

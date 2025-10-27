@@ -13,12 +13,12 @@ export const AuthRoutes: Routes = [
     path: 'login',
     component: LoginComponent,
     canActivate: [publicOnlyGuard],
-    data: { title: ' Iniciar Sesión - Gestión de Ventas'}
+    data: { title: 'Iniciar Sesión - Gestión de Ventas'}
   },
   {
     path: 'register',
     component: RegisterComponent,
     canActivate: [publicOnlyGuard],
     data: { title: 'Crear Cuenta - Gestión de Ventas' }
-  }
+  },
 ]

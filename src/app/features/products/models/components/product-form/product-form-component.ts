@@ -23,6 +23,7 @@ interface QuickCreateModal {
 export class ProductFormComponent {
   private fb = inject(FormBuilder);
   private productsService = inject(ProductsService);
+  
   // Signals
   isOpen = signal(false);
   isSubmitting = signal(false);
@@ -60,13 +61,10 @@ export class ProductFormComponent {
     return this.lines().filter((line: Linea) => line.marcaId === brandId);
   });
 
-  // Calcular margen de ganancia
-  profitMargin = computed(() => {
-    const price = this.productForm?.get('price')?.value || 0;
-    const cost = this.productForm?.get('cost')?.value || 0;
-
-    if (cost === 0) return 0;
-    return ((price - cost) / cost) * 100;
+  // Estado actual del producto
+  productStatus = computed(() => {
+    const isActive = this.productForm?.get('isActive')?.value;
+    return isActive ? 'Disponible' : 'No disponible';
   });
 
   constructor() {
@@ -97,10 +95,8 @@ export class ProductFormComponent {
   proveedorId: ['', Validators.required],
       lineId: ['', Validators.required],
       price: [0, [Validators.required, Validators.min(0)]],
-      cost: [0, [Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
-      minStock: [10, [Validators.min(0)]],
-      isActive: [true],
+      isActive: [true], // true = disponible (1), false = no disponible (2)
     });
   }
 
@@ -118,9 +114,7 @@ export class ProductFormComponent {
       this.currentProductId.set(null);
       this.productForm.reset({
         isActive: true,
-        minStock: 10,
         price: 0,
-        cost: 0,
         stock: 0,
       });
     }
@@ -271,10 +265,9 @@ export class ProductFormComponent {
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
-  
   isLineButtonDisable(): boolean {
     const brandId = this.productForm.get('brandId')?.value;
-    return !brandId; // true si no hay marca seleccionada → deshabilita el botón
+    return !brandId;
   }
 
   getErrorMessage(fieldName: string): string {

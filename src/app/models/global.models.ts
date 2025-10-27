@@ -64,7 +64,7 @@ export interface Usuario{
   fechaHora: Date;
   rol: Rol;
 }
-enum Rol {
+export enum Rol {
   ADMIN = "ADMIN",
   CLIENTE = "CLIENTE",
   AUDITOR = "AUDITOR"

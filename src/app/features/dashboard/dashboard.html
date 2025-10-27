@@ -24,12 +24,40 @@
         <a href="javascript:void(0)" class="nav-link" (click)="navigateTo('/products')">
           Productos
         </a>
+        <a href="javascript:void(0)" class="nav-link" (click)="navigateTo('/suppliers')">
+          Proveedores
+        </a>
       </div>
 
-      <!-- Logout Button -->
-      <button class="btn-logout" (click)="onLogout()" title="Cerrar sesión">
-        <i class="bi bi-box-arrow-right"></i>
-      </button>
+      <div id="liveAlertPlaceholder" class="position-fixed top-0 end-0 p-3" style="z-index: 1080;"></div>
+
+      <div class="navbar-actions">
+        <!-- Usuario info -->
+        @if (currentUser()) {
+        <div class="user-dropdown" (click)="toggleMenu()" [class.active]="showMenu">
+          <div class="user-info">
+            <div class="user-avatar">{{ getUserInitials() }}</div>
+            <div class="user-details">
+              <span class="user-name">{{ currentUser().nombre }}</span>
+              <span class="user-role">{{ getRoleLabel(currentUser().rol) }}</span>
+            </div>
+            <i class="bi bi-caret-down-fill dropdown-icon"></i>
+          </div>
+
+          <!-- Menú desplegable -->
+          @if (showMenu) {
+          <div class="user-menu shadow" (click)="$event.stopPropagation()">
+            <ul class="list-unstyled mb-0">
+              <li (click)="goToProfile()"><i class="bi bi-person-circle me-2"></i> Perfil</li>
+              <li (click)="logout()" class="text-danger">
+                <i class="bi bi-box-arrow-right me-2"></i> Cerrar sesión
+              </li>
+            </ul>
+          </div>
+          }
+        </div>
+        }
+      </div>
     </div>
   </nav>
 
@@ -38,8 +66,14 @@
     <div class="container">
       <!-- Hero Section -->
       <div class="hero-section">
-        <h1 class="hero-title">Bienvenido de nuevo</h1>
+        <h1 class="hero-title">{{ welcomeMessage }}, {{ userName }}</h1>
         <p class="hero-subtitle">Aquí está un resumen de tu actividad de ventas</p>
+        @if (currentUser()) {
+        <div class="user-badge">
+          <i class="bi bi-shield-check"></i>
+          <span>{{ currentUser().correo }}</span>
+        </div>
+        }
       </div>
 
       <!-- Metrics Cards -->

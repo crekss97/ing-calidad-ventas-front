@@ -3,18 +3,9 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { catchError, tap, throwError } from 'rxjs';
 import { AuthService } from '../../features/auth/services/auth.service';
 
-/**
- * Interceptor HTTP para agregar automáticamente el token JWT a todas las peticiones
- * y manejar errores de autenticación globalmente
- * 
- * Configuración en app.config.ts:
- * provideHttpClient(
- *   withInterceptors([authInterceptor])
- * )
- */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
@@ -32,7 +23,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       }
     });
     
-    console.log('🔐 Auth Interceptor: Token agregado a la petición', {
+    console.log('Auth Interceptor: Token agregado a la petición', {
       url: req.url,
       method: req.method
     });
@@ -44,15 +35,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       
       // Error 401: No autorizado (token inválido o expirado)
       if (error.status === 401) {
-        console.error('❌ Auth Interceptor: Error 401 - Token inválido o expirado');
+        console.error('Auth Interceptor: Error 401 - Token inválido o expirado');
         
         // Limpiar la sesión
         authService.logout();
-        
-        // Redirigir al login
-        router.navigate(['/auth/login'], {
-          queryParams: { sessionExpired: 'true' }
-        });
+
+        if (router.url !== '/auth/login') {
+          // Redirigir al login
+          router.navigate(['/auth/login'], {
+            queryParams: { sessionExpired: 'true' }
+          });
+        }
       }
 
       // Error 403: Prohibido (sin permisos)
@@ -63,10 +56,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
       // Error 0: No hay conexión con el servidor
       if (error.status === 0) {
-        console.error('❌ Auth Interceptor: Error de red - No se pudo conectar con el servidor');
+        console.error('Auth Interceptor: Error de red - No se pudo conectar con el servidor');
+        //this.snackbar.open('No se pudo conectar con el servidor', 'Cerrar', {duracion: 3000});
       }
 
-      return throwError(() => error);
+      return throwError(() => new Error(error.message));
     })
   );
 };
@@ -96,15 +90,20 @@ export const jsonInterceptor: HttpInterceptorFn = (req, next) => {
 export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
   const startTime = Date.now();
 
-  console.log(`🚀 HTTP ${req.method} → ${req.url}`, {
+  console.log(`HTTP ${req.method} → ${req.url}`, {
     body: req.body,
     headers: req.headers.keys()
   });
 
   return next(req).pipe(
+
+    tap((event) => {
+      const elapsedTime = Date.now() - startTime;
+      console.log(`HTTP ${req.method} → ${req.url} completado (${elapsedTime}ms)`, event);
+    }),
     catchError((error) => {
       const elapsedTime = Date.now() - startTime;
-      console.error(`❌ HTTP ${req.method} → ${req.url} [${error.status}] (${elapsedTime}ms)`, error);
+      console.error(`HTTP ${req.method} → ${req.url} [${error.status}] (${elapsedTime}ms)`, error);
       return throwError(() => error);
     })
   );

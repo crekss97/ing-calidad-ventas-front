@@ -143,28 +143,13 @@
           </div>
         </div>
 
-        <!-- Precios y Costos -->
+        <!-- Precio e Inventario -->
         <div class="form-section">
-          <h3>Precios y Costos</h3>
+          <h3>Precio e Inventario</h3>
 
-          <div class="form-row three-cols">
+          <div class="form-row">
             <div class="form-group">
-              <label for="cost">Costo</label>
-              <div class="input-icon">
-                <span class="input-prefix">$</span>
-                <input
-                  type="number"
-                  id="cost"
-                  formControlName="cost"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="price">Precio de Venta *</label>
+              <label for="price">Precio *</label>
               <div class="input-icon">
                 <span class="input-prefix">$</span>
                 <input
@@ -183,25 +168,7 @@
             </div>
 
             <div class="form-group">
-              <label>Margen de Ganancia</label>
-              <div
-                class="calculated-field"
-                [class.positive]="profitMargin() > 0"
-                [class.negative]="profitMargin() < 0"
-              >
-                <strong>{{ profitMargin() | number : '1.1-1' }}%</strong>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Inventario -->
-        <div class="form-section">
-          <h3>Control de Inventario</h3>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="stock">Stock Actual *</label>
+              <label for="stock">Stock *</label>
               <input
                 type="number"
                 id="stock"
@@ -214,31 +181,37 @@
               <span class="error-message">{{ getErrorMessage('stock') }}</span>
               }
             </div>
-
-            <div class="form-group">
-              <label for="minStock">Stock Mínimo</label>
-              <input
-                type="number"
-                id="minStock"
-                formControlName="minStock"
-                min="0"
-                placeholder="10"
-              />
-              <small>Alerta cuando el stock sea menor o igual a este valor</small>
-            </div>
           </div>
         </div>
 
-        <!-- Estado -->
+        <!-- Estado del Producto -->
         <div class="form-section">
           <h3>Estado del Producto</h3>
 
-          <div class="form-options">
-            <label class="checkbox-label">
-              <input type="checkbox" formControlName="isActive" />
-              <span>Producto activo</span>
-              <small>Los productos inactivos no aparecerán en la tienda</small>
-            </label>
+          <div class="status-container">
+            <div class="status-toggle">
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="isActive" />
+                <span class="toggle-slider"></span>
+              </label>
+              <div class="status-info">
+                <span class="status-label">Estado actual:</span>
+                <span 
+                  class="status-badge" 
+                  [class.active]="productForm.get('isActive')?.value"
+                  [class.inactive]="!productForm.get('isActive')?.value"
+                >
+                  {{ productStatus() }}
+                </span>
+              </div>
+            </div>
+            <small class="status-description">
+              @if (productForm.get('isActive')?.value) {
+                El producto está disponible para la venta
+              } @else {
+                El producto no está disponible para la venta
+              }
+            </small>
           </div>
         </div>
       </form>

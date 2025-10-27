@@ -39,7 +39,7 @@ interface QuickAction {
   standalone: true,
   imports: [CommonModule, ProductFormComponent, RegistrarVentaComponent],
   templateUrl: './dashboard.html',
-  styleUrls: ['./dashboard.scss']
+  styleUrls: ['./dashboard.scss'],
 })
 export class DashboardComponent implements OnInit {
   @ViewChild(ProductFormComponent) productForm!: ProductFormComponent
@@ -93,6 +93,14 @@ export class DashboardComponent implements OnInit {
     //alert(`Funcionalidad "${action.label}" en desarrollo.\nRuta: ${action.route}`);
   }
 
+  // navigateTo(route: string): void {
+  //   // Placeholder para navegación
+  //   if (route === '/products') {
+  //     this.router.navigate([route]);
+  //   } else {
+  //     alert(`Navegando a: ${route}\n(Funcionalidad en desarrollo)`);
+  //   }
+  // }
   navigateTo(route: string): void {
     this.router.navigate([route]);
   }
@@ -172,11 +180,33 @@ export class DashboardComponent implements OnInit {
     return `#${'00000'.substring(0, 6 - c.length)}${c}`;
   }
 
+  showBootstrapAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info'): void {
+  const alertPlaceholder = document.getElementById('liveAlertPlaceholder');
+  if (!alertPlaceholder) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = `
+    <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  `;
+
+  alertPlaceholder.append(wrapper);
+
+  // Desaparece automáticamente después de 3 segundos
+  setTimeout(() => {
+    wrapper.classList.remove('show');
+    wrapper.classList.add('fade');
+    setTimeout(() => wrapper.remove(), 500);
+  }, 3000);
+}
+
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
       currency: 'ARS',
-      minimumFractionDigits: 2
+      minimumFractionDigits: 2,
     }).format(amount);
   }
 

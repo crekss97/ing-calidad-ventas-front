@@ -6,6 +6,12 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environments';
 import { CreateUsuarioDto, LoginDto, Usuario } from '../../../models/global.models';
 
+
+// Interfaz para la respuesta real del backend
+interface BackendLoginResponse {
+  token: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
