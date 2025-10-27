@@ -1,7 +1,8 @@
+// src/app/features/suppliers/services/supplier.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import {
   Supplier,
   CreateSupplierRequest,
@@ -12,13 +13,13 @@ import {
   CreateProductSupplierRequest,
   UpdateProductSupplierRequest
 } from '../models/supplier.model';
-import { environment } from '../../../environments/environments';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SupplierService {
-  private apiUrl = environment.vercelUrl + '/proveedor';
+  private apiUrl = 'http://localhost:3000/proveedor';
+  //private apiUrl = environment.vercelUrl + '/proveedor';
 
   constructor(private http: HttpClient) {}
 
@@ -30,8 +31,15 @@ export class SupplierService {
       .set('page', page.toString())
       .set('limit', limit.toString());
 
-    return this.http.get<SuppliersResponse>(`${this.apiUrl}`, { params })
-      .pipe(catchError(this.handleError));
+    return this.http.get<Supplier[]>(`${this.apiUrl}`, { params }).pipe(
+      map(suppliers => ({
+        suppliers: suppliers,
+        total: suppliers.length,
+        page,
+        limit
+      } as SuppliersResponse)),
+      catchError(this.handleError)
+    );
   }
 
   /** Obtener un proveedor por ID */
@@ -58,7 +66,7 @@ export class SupplierService {
       .pipe(catchError(this.handleError));
   }
 
-  // ============= Relación Producto-Proveedor =============
+  // ============= Relación Producto-Proveedor (si las necesitas después) =============
 
   /** Vincular producto con proveedor */
   linkProductToSupplier(data: CreateProductSupplierRequest): Observable<ProductSupplier> {
